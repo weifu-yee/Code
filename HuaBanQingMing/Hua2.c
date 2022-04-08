@@ -12,7 +12,7 @@ int main(){
     while (i<1000){
         if (Index[i]){
             for (int j=i+1; j<1000; j++){
-                if ( !((j+1) % (i+1)) )
+                if ( !((j+1) % (i+1)) )//
                     Index[j]=0;
             }
             if (!first){
