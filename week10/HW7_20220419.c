@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 typedef struct student{
     int number;
-    char name[10];
+    char *name;
     int score;
     struct student* next;
 }STU;
@@ -13,22 +14,27 @@ int main(){
     FILE *input = fopen("input.txt","r");
     STU *head = NULL, *new_stu = NULL;
     int num, score, nop=0, temp=0;
-    char* name[10];
-    char* name_ptr = name;
-
+    char name[10];
+    //char* name_ptr = &name;
     // fscanf(input,"%d",&num);
     // fscanf(input,"%s",name);
     // fscanf(input,"%d",&score);
     while( fscanf(input,"%d%s%d",&num,name,&score) == 3){
         new_stu = (STU*) malloc( sizeof( STU));
         new_stu->number = num;
-        new_stu->name[0] = name_ptr;
+        printf("%s\n",name);
+        char* new_name = malloc( 10*sizeof( char));
+        for( int i = 0; i < 10; i++){
+            *(new_name + i) = *(name + i);
+        }
+        new_stu->name = new_name;
         new_stu->score = score;
         new_stu->next = head;
         head = new_stu;
         nop ++;
     }
         visitlist(head);
+        printf("%d",nop);
     // }
 
     // STU* arr1[nop];
@@ -59,7 +65,7 @@ int main(){
 
 void visitlist(STU* n){
     while(n != NULL){
-        printf("%d %d\n",n->number,n->score);
+        printf("%d %s %d\n",n->number,n->name,n->score);
         n = n->next;
     }
 }
