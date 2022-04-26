@@ -28,14 +28,10 @@ int main(){
         head = new_stu;
         nop ++;
     }
-
-    visitlist(head);
     head = bubblesort(head,nop);
-    printf("\n-----\n");
-    visitlist(head);
-    // printf("%d",nop);
+    //visitlist(head);
 
-    /*STU* arr1[nop];
+    STU* arr1[nop];
     STU* arr2[nop];
     STU* arr3[nop];
 
@@ -52,12 +48,32 @@ int main(){
     printf("Press '1' to show the arrangement by rollNumber!\n");
     printf("Press '2' to show the arrangement by studentName!\n");
     printf("Press '3' to show the arrangement by score!\n");
-    printf("Please press ");
+    printf("Please press command!\n");
+    char cmd;
+    int while_boo = 1;
+    do{printf("\n-----");
+        scanf("%c",&cmd);
+        if(cmd == '1'){
+            printf("[1]\n");
+            visitlist(head);
+        }else if(cmd == '2'){
+            printf("[2]\n");
+        }else if(cmd == '3'){
+            printf("[3]\n");
+        }else if(cmd == 'q'){
+            printf("[q]\n");
+            while_boo = 0;
+        }else if(cmd == '0'){
 
+        }else{
+            printf("[defaut]\n");
+            printf("This command is not valid!\n");
+        }
+        cmd = '0';
+    }while(while_boo);
     // printf("%d\n",num);
     // printf("%s\n",name_ptr);
-    // printf("%d\n",score);*/
-
+    // printf("%d\n",score);
     fclose(input);
     return 0;
 }
@@ -68,7 +84,6 @@ void visitlist(STU* n){
         n = n->next;
     }
 }
-
 STU* bubblesort(STU* head,int nop){
     STU *temp = head;
     for(int i = nop - 1; i > 0; i--){
