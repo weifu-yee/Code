@@ -8,21 +8,36 @@ typedef struct student{
     struct student* next;
 }STU;
 
+visit(STU* n);
+
 int main(){
     FILE *input = fopen("input.txt","r");
-    STU *head;
-    head = malloc (sizeof (STU));
-    // head -> next = malloc (sizeof (STU));
-    STU *current;
-    current = head;
-    while(1){
-        if (fscanf(input,"%d %s %d",current -> number,current -> name,current -> score) != EOF){
-        current = current -> next;
-        current -> next = malloc (sizeof (STU));
-        }else{
-            free(current -> next);
-            current -> next = NULL;
-        }
+    STU *head = NULL, *New = NULL;
+    int num, score, nop = 0;
+    char name[10] = {0};
+    while(fscanf(input,"%d %s %d",&num,name,&score) != EOF){
+        New = (STU*) malloc( sizeof( STU));
+        New->number = num;
+        New->name = name;
+        New->score = score;
+        New->next = head;
+        head = New;
+        nop ++;
+    }
+
+    STU* arr1[nop];
+    STU* arr2[nop];
+    STU* arr3[nop];
+
+    STU* n = head;
+    for( int i = 0; i < nop; i++){
+        arr1[i] = n;
+        arr2[i] = n;
+        arr3[i] = n;
+        n = n->next;
+    }
+    for( int i = 0; i < nop; i++){
+        printf("%d\t",arr[i]->number);
     }
 
 
@@ -34,3 +49,9 @@ int main(){
     printf("Please press ");
 }
 
+visit(STU* n){
+    while(n != NULL){
+        printf("%d %s %d",(n->number),n->name,(n->score));
+        n = n->next;
+    }
+}
