@@ -18,7 +18,7 @@ int main(){
     while( fscanf(input,"%d%s%d",&num,name,&score) == 3){
         new_stu = (STU*) malloc( sizeof( STU));
         new_stu->number = num;
-        char* new_name = malloc( 10*sizeof( char));
+        char* new_name = malloc( 10*sizeof( char));     //含字串結尾最多10個
         for( int i = 0; i < 10; i++){
             *(new_name + i) = *(name + i);
         }
@@ -36,44 +36,90 @@ int main(){
     STU* arr3[nop];
 
     STU* n = head;
-    for( int i = 0; i < nop; i++){
+    for( int i = 0; i < nop; i++){      //建立3個陣列 記錄指標指向linked list
         arr1[i] = n;
         arr2[i] = n;
         arr3[i] = n;
         n = n->next;
     }
-    for( int i = 0; i < nop; i++){
-        if( arr1[i]->number ){}
-    }
-    printf("Press '1' to show the arrangement by rollNumber!\n");
-    printf("Press '2' to show the arrangement by studentName!\n");
-    printf("Press '3' to show the arrangement by score!\n");
-    printf("Please press command!\n");
-    char cmd;
-    int while_boo = 1;
-    do{printf("\n-----");
-        scanf("%c",&cmd);
-        if(cmd == '1'){
-            printf("[1]\n");
-            visitlist(head);
-        }else if(cmd == '2'){
-            printf("[2]\n");
-        }else if(cmd == '3'){
-            printf("[3]\n");
-        }else if(cmd == 'q'){
-            printf("[q]\n");
-            while_boo = 0;
-        }else if(cmd == '0'){
-
-        }else{
-            printf("[defaut]\n");
-            printf("This command is not valid!\n");
+    
+    STU* stuptr_temp;
+    int a,b;        //另存兩個變數以比較英文排序(考慮大小寫)
+    for( int i = 0; i < nop -1; i++){
+        for( int j = 0; j < nop -1 -i; j++){
+            int k;
+            for( k = 0; k < 9; k++){        //名字不超過9個字母，最多往下比到9個
+                a = *(arr2[j]->name + k) - 65;      //大寫小寫轉換為相同數字比較
+                a = ((a-25)>0)? a-32 : a;           //~
+                b = *(arr2[j+1]->name + k) - 65;    //~
+                b = ((b-25)>0)? b-32 : b;           //~
+                if( a > b ){
+                    stuptr_temp = arr2[j];
+                    arr2[j] = arr2[j+1];
+                    arr2[j+1] = stuptr_temp;
+                    break;        
+                }else if( a < b )   break;
+            }
+            if(k == 9){
+                if( arr2[j]->number > arr2[j+1]->number){
+                    stuptr_temp = arr2[j];
+                    arr2[j] = arr2[j+1];
+                    arr2[j+1] = stuptr_temp;
+                }
+            }
         }
-        cmd = '0';
-    }while(while_boo);
-    // printf("%d\n",num);
-    // printf("%s\n",name_ptr);
-    // printf("%d\n",score);
+    }
+    for( int i = 0; i < nop -1; i++){
+        for( int j = 0; j < nop -1 -i; j++){
+            if( arr3[j]->score > arr3[j+1]->score){
+                    stuptr_temp = arr3[j];
+                    arr3[j] = arr3[j+1];
+                    arr3[j+1] = stuptr_temp;
+            }else if(arr3[j]->score == arr3[j+1]->score){       //分數一樣比學號
+                if( arr3[j]->number > arr3[j+1]->number){
+                    stuptr_temp = arr3[j];
+                    arr3[j] = arr3[j+1];
+                    arr3[j+1] = stuptr_temp;
+                }
+            }
+        }
+    }
+
+    printf("Key '1' to show the arrangement by rollNumber!\n");
+    printf("Key '2' to show the arrangement by studentName!\n");
+    printf("Key '3' to show the arrangement by score!\n");
+    char cmd = 0;
+    int while_time = 0;
+    while(cmd != 'q'){
+        printf((while_time)?"\nPlease key a command and press the 'Enter' again : ":"Please key a command and press the 'Enter' : ");
+        scanf("\n%c",&cmd);
+        switch( cmd){
+            case '1' :
+                printf("\nBy rollNumber ~ ~ ~\n");
+                for( int i = 0; i < nop; i++){
+                    printf("%d %s %d\n",arr1[i]->number,arr1[i]->name,arr1[i]->score);
+                }
+                break;
+            case '2' :
+                printf("\nBy studentName ~ ~ ~\n");
+                for( int i = 0; i < nop; i++){
+                    printf("%d %s %d\n",arr2[i]->number,arr2[i]->name,arr2[i]->score);
+                }
+                break;   
+            case '3' :
+                printf("\nBy score ~ ~ ~\n");
+                for( int i = 0; i < nop; i++){
+                    printf("%d %s %d\n",arr3[i]->number,arr3[i]->name,arr3[i]->score);
+                }
+                break;
+            case 'q' :
+                break;
+            default :
+                printf("\nThis command is not valid ! ! ! ! ! ! !\n");
+                break;
+        }
+        while_time =1;
+    }
     fclose(input);
     return 0;
 }
