@@ -96,9 +96,7 @@ int main(){
         switch( cmd){
             case '1' :
                 printf("\nBy rollNumber ~ ~ ~\n");
-                for( int i = 0; i < nop; i++){
-                    printf("%d %s %d\n",arr1[i]->number,arr1[i]->name,arr1[i]->score);
-                }
+                visitlist(head);
                 break;
             case '2' :
                 printf("\nBy studentName ~ ~ ~\n");
