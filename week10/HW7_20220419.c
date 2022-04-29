@@ -94,15 +94,11 @@ int main(){
                 break;
             case '2' :
                 printf("\nBy studentName ~ ~ ~\n");
-                for( int i = 0; i < nop; i++){
-                    printf("%d %s %d\n",arrN[i]->number,arrN[i]->name,arrN[i]->score);
-                }
+                for( int i = 0; i < nop; i++)   printf("%d %s %d\n",arrN[i]->number,arrN[i]->name,arrN[i]->score);
                 break;   
             case '3' :
                 printf("\nBy score ~ ~ ~\n");
-                for( int i = 0; i < nop; i++){
-                    printf("%d %s %d\n",arrS[i]->number,arrS[i]->name,arrS[i]->score);
-                }
+                for( int i = 0; i < nop; i++)   printf("%d %s %d\n",arrS[i]->number,arrS[i]->name,arrS[i]->score);
                 break;
             case 'q' :
                 break;
