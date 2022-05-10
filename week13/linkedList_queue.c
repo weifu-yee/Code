@@ -14,7 +14,6 @@ typedef struct queue{
 
 void enqueue(queue* q){
     node* newnode = (node*)malloc(sizeof( node));
-    //node* temp = q->rear;
     newnode->next = NULL;
     if (q->count)   q->rear->next = newnode;
     else     ;
@@ -23,7 +22,6 @@ void enqueue(queue* q){
     scanf("\t%d",&newnode->data);
     q->front = (q->count)?q->front: newnode;
     q->count ++;
-    //printf("f");
 }
 
 int dequeue(queue* q){
