@@ -34,9 +34,7 @@ void posfix(char Y[]){
 char* infix_to_pos(char X[]){
     int count = 0;
     while( X[count])    count ++;
-    char stack[];
-    char Y[100];
-
-    
-    return 0;
+    char stack[count], Y[count];
+    while( )
+    return Y;
 }
