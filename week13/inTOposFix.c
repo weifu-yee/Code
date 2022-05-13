@@ -3,7 +3,9 @@
 #include <math.h>
 void posfix(char Y[]);
 char* infix_to_pos(char X[]);
-void pop(char stack[],int top,char value);
+int count_X(char X[]);
+void push(char stack[],int top,char value);
+char pop(char stack[],int top);
 
 int main(){
     char X[1000];
@@ -33,30 +35,70 @@ void posfix(char Y[]){
 }
 
 char* infix_to_pos(char X[]){
-    int count = 0;
-    while( X[count])    count ++;
+    int count = count_X(X);
     char stack[count], Y[count];
     X[count] = ')';
     X[count +1] = '\0';
+
     int i = 0,topS = -1,topY = -1;
+    char temp;
     while( X[i]){
         switch( X[i]){
-        case '^' :
-            Y[++ topY] = stack[topS -2];
-            Y[++ topY] = stack[--topS];
-            topS--;
-            break;
+        case '+' :
+        case '-' :
+            while(stack[topS] == '^' || stack[topS] == '*' || stack[topS] == '/'){
+                temp = pop(stack,topS);
+                push(Y,topY,temp);
+            }
         case '*' :
-            if(stack[topS] == '')
-            pop(stack,top,X[i]);
+        case '/' :
+            while(stack[topS] == '^'){
+                temp = pop(stack,topS);
+                push(Y,topY,temp);
+            }
+        case '^' :
+            push(stack,topS,X[i]);
             break;
-        case '/' :break;
-        case '+' :break;
-        case '-' :break;
+        case '(' :break;
+        case ')' :break;
         default: 
             stack[++ top] = X[i];
         }
+        i++;
     }
+    /*while( X[i]){
+        switch( X[i]){
+        case '^' :
+            push(stack,topS,X[i]);
+            break;
+        case '*' :
+        case '/' :
+            if(stack[topS] == '^'){
+                temp = pop(stack,topS);
+                push(Y,topY,temp);
+            }
+            push(stack,topS,X[i]);
+            break;
+        case '+' :
+        case '-' :
+            while(stack[topS] == '^' || stack[topS] == '*' || stack[topS] == '-'){
+                temp = pop(stack,topS);
+                push(Y,topY,temp);
+            }
+            push(stack,topS,X[i]);
+            break;
+        case '(' :break;
+        case ')' :break;
+        default: 
+            stack[++ top] = X[i];
+        }
+        i++;
+    }*/
     return Y;
 }
 
+int count_X(char X[]){
+    int count = 0;
+    while(X[count])     count++;
+    return count;
+}
