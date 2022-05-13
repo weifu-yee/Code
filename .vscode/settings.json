@@ -3,7 +3,7 @@
     "math.h": "c",
     "stdio.h": "c"
   },
-  "C_Cpp_Runner.cCompilerPath": "D:/msys2/usr/bin/gcc.exe",
+  "C_Cpp_Runner.cCompilerPath": "D:/msys2/mingw64/bin/gcc.exe",
   "C_Cpp_Runner.cppCompilerPath": "D:/msys2/mingw64/bin/g++.exe",
   "C_Cpp_Runner.cStandard": "",
   "C_Cpp_Runner.cppStandard": "",

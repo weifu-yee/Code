@@ -35,6 +35,14 @@ char* infix_to_pos(char X[]){
     int count = 0;
     while( X[count])    count ++;
     char stack[count], Y[count];
-    while( )
+    X[count] = ')';
+    X[count +1] = '\0';
+    int i = 0;
+    while( X[i]){
+        switch( X[i]){
+        case '+' :
+            
+        }
+    }
     return Y;
 }
