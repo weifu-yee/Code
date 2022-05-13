@@ -3,6 +3,7 @@
 #include <math.h>
 void posfix(char Y[]);
 char* infix_to_pos(char X[]);
+void pop(char stack[],int top,char value);
 
 int main(){
     char X[1000];
@@ -37,12 +38,25 @@ char* infix_to_pos(char X[]){
     char stack[count], Y[count];
     X[count] = ')';
     X[count +1] = '\0';
-    int i = 0;
+    int i = 0,topS = -1,topY = -1;
     while( X[i]){
         switch( X[i]){
-        case '+' :
-            
+        case '^' :
+            Y[++ topY] = stack[topS -2];
+            Y[++ topY] = stack[--topS];
+            topS--;
+            break;
+        case '*' :
+            if(stack[topS] == '')
+            pop(stack,top,X[i]);
+            break;
+        case '/' :break;
+        case '+' :break;
+        case '-' :break;
+        default: 
+            stack[++ top] = X[i];
         }
     }
     return Y;
 }
+
