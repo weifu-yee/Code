@@ -4,8 +4,8 @@
 void posfix(char Y[]);
 char* infix_to_pos(char X[]);
 int count_X(char X[]);
-void push(char stack[],int top,char value);
-char pop(char stack[],int top);
+void push(char stack[],int* top,char value);
+char pop(char stack[],int* top);
 
 int main(){
     char X[1000];
@@ -15,6 +15,7 @@ int main(){
 }
 
 void posfix(char Y[]){
+    printf("%s",Y);
     int stack[1000];
     int top = -1, j = 0, tmp;
     while(1){
@@ -31,7 +32,8 @@ void posfix(char Y[]){
         }else   break;
         j ++;
     }
-        printf((!top)?"%d":"\tThe expression isn't complete !\n",stack[top]);
+    printf("\t~ ~ ");
+    printf((!top)?"%d":"\tThe expression isn't complete !\n",stack[top]);
 }
 
 char* infix_to_pos(char X[]){
@@ -39,33 +41,61 @@ char* infix_to_pos(char X[]){
     char stack[count], Y[count];
     X[count] = ')';
     X[count +1] = '\0';
+    printf("\t---X:%s---\n",X);
 
-    int i = 0,topS = -1,topY = -1;
-    char temp;
+    int i = 0,topS = -1,topY = -1,w = 1;
+    push( stack, &topS, '(');
     while( X[i]){
+        printf("---X[i]:%c---",X[i]);
         switch( X[i]){
         case '+' :
         case '-' :
-            while(stack[topS] == '^' || stack[topS] == '*' || stack[topS] == '/'){
-                temp = pop(stack,topS);
-                push(Y,topY,temp);
+            while(w){
+                switch( stack[topS]){
+                case '+' :
+                case '-' :    
+                case '*' :    
+                case '/' :    
+                case '^' :
+                    push( Y, &topY, pop(stack,&topS));
+                    break;
+                default :
+                    w = 0;
+                }
             }
         case '*' :
         case '/' :
-            while(stack[topS] == '^'){
-                temp = pop(stack,topS);
-                push(Y,topY,temp);
+            w = 1;
+            while(w){
+                switch( stack[topS]){    
+                case '*' :    
+                case '/' :    
+                case '^' :
+                    push( Y, &topY, pop(stack,&topS));
+                    break;
+                default :
+                    w = 0;
+                }
             }
         case '^' :
-            push(stack,topS,X[i]);
+            if( stack[topS] == '^')     push( Y, &topY, pop(stack,&topS));
+        case '(' :
+            push(stack,&topS,X[i]);
             break;
-        case '(' :break;
-        case ')' :break;
+        case ')' :
+            while( stack[topS] != '(')      push( Y, &topY, pop(stack,&topS));
+                topS --;
+            break;
         default: 
-            stack[++ top] = X[i];
+            push( Y, &topY, X[i]);
         }
         i++;
+        printf("\t---stack:%s---",stack);
+        printf("\t---Y:%s---\n",Y);
     }
+    // char* YY = (char*) malloc(count* sizeof( char));
+    // YY = Y;
+    //printf("%s",YY);
     /*while( X[i]){
         switch( X[i]){
         case '^' :
@@ -94,11 +124,23 @@ char* infix_to_pos(char X[]){
         }
         i++;
     }*/
-    return Y;
+    
+    char* Y_ptr = Y;
+    Y[topY + 1] = '\0';
+    printf("\t###Y_ptr:%s---\n",Y_ptr);
+    return Y_ptr;
 }
 
 int count_X(char X[]){
     int count = 0;
     while(X[count])     count++;
     return count;
+}
+
+void push(char stack[],int* top,char value){
+    stack[++ (*top)] = value;
+}
+
+char pop(char stack[],int* top){
+    return stack[(*top)--];
 }
