@@ -11,7 +11,7 @@ void visitlist(STU* n);
 STU* bubblesort(STU* head,int nop);
 
 int main(){
-    FILE *input = fopen("input.txt","r");
+    FILE *input = fopen("D:/Code/WEEK/week11/input.txt","r");
     STU *head = NULL, *new_stu = NULL;
     int num, score, nop=0, temp=0;
     char name[10];
