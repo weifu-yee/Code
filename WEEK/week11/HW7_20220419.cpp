@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <conio.h>
+
 typedef struct student{
     int number;
     char *name;
@@ -18,7 +20,7 @@ int main(){
     while( fscanf(input,"%d%s%d",&num,name,&score) == 3){
         new_stu = (STU*) malloc( sizeof( STU));
         new_stu->number = num;
-        char* new_name = malloc( 10*sizeof( char));
+        char* new_name = (char*)malloc( 10*sizeof( char));
         for( int i = 0; i < 10; i++)    *(new_name + i) = *(name + i);
         new_stu->name = new_name;
         new_stu->score = score;

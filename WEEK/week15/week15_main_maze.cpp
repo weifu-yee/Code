@@ -1,7 +1,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "windows.h"
-//#include "conio.h"
+#include "conio.h"
 
 #define SIZE 10
 
@@ -27,10 +27,8 @@ int main(void) {
 				fscanf(inf,"%d", &maze[i][j]);
 	}
 	if(!visit(pt(1, 1), pt(8, 8))) {
-        printf("\n�S�����X�f�I\n");
+        printf("\nNMSL\n");
     }
-//    print();
-
 	system("pause");
     return 0;
 }
@@ -42,25 +40,32 @@ Point pt(int x, int y) {
 
 int visit(Point start, Point end) {
 	char c;
-
-    // if (kbhit()) {
-    //         c = getch();
-	// 	    printf("User input %c\n", c);
-	// 		Sleep(10);
-	// }
-
-	show();
+    if (kbhit()) {
+            c = getch();
+		    printf("User input %c\n", c);
+			Sleep(10);
+	}
+	if(!maze[start.x][start.y] || maze[start.x][start.y] == 3)	show();
 	if(!maze[start.x][start.y]) {
          maze[start.x][start.y] = 1;
-         if(!maze[end.x][end.y] &&
-            !(visit(pt(start.x, start.y + 1), end) ||
-              visit(pt(start.x + 1, start.y), end) ||
-              visit(pt(start.x, start.y - 1), end) ||
-              visit(pt(start.x - 1, start.y), end))) {
-                 maze[start.x][start.y] = 0;
+         if(!maze[end.x][end.y] &&							//if成立(end為0)：四個方向都試過了，要往回退
+            !( visit(pt(start.x, start.y + 1), end) ||
+               visit(pt(start.x + 1, start.y), end) ||
+               visit(pt(start.x, start.y - 1), end) ||
+               visit(pt(start.x - 1, start.y), end)    ) ) {
+                 maze[start.x][start.y] = 3;
          }
-    }
-	show();
+    }else{
+		printf("no~\n");
+		Sleep(100);
+	}
+	if(!maze[start.x][start.y] || maze[start.x][start.y] == 3) show();
+	if(maze[8][8] == 1)		{
+		show();
+		printf("\n fin \n");
+		system("Pause");
+		exit(1);
+	}
     return maze[end.x][end.y];
 
 }
@@ -69,30 +74,35 @@ void show() {
 	int i, j;
 
 	system("CLS");
+	Sleep(100);
 	for(i=0; i<SIZE; i++) {
 		for (j=0; j<SIZE; j++) {
 				switch(maze[i][j]) {
 					case 0 : printf(" "); break;
 					case 1 : printf("o"); break;
-					case 2 : printf("X");
+					case 2 : printf("X"); break;
+					case 3 : printf("/");
 				}
 		}
 		printf("\n");
 	}
-	Sleep(100);
+	Sleep(500);
 	return;
 }
 
 void print() {
     int i, j;
+	system("CLS");
     for(i = 0; i < SIZE; i++) {
         for(j = 0; j < SIZE; j++)
 			switch(maze[i][j]) {
-				case 0 : printf("  "); Sleep(100); break;
-				case 1 : printf("��"); Sleep(100); break;
-				case 2 : printf("�i");
+				case 0 : printf(" "); Sleep(100); break;
+				case 1 : printf("-"); Sleep(100); break;
+				case 2 : printf("龍");
 			}
         printf("\n");
     }
+	Sleep(100);
+	return;
 }
 
