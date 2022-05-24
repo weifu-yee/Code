@@ -2,8 +2,8 @@
     "tasks": [
         {
             "type": "cppbuild",
-            "label": "C/C++: gcc.exe 建置使用中檔案",
-            "command": "D:\\msys2\\usr\\bin\\gcc.exe",
+            "label": "C/C++: g++.exe 建置使用中檔案",
+            "command": "C:\\msys64\\mingw64\\bin\\g++.exe",
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
@@ -12,7 +12,7 @@
                 "${fileDirname}\\${fileBasenameNoExtension}.exe"
             ],
             "options": {
-                "cwd": "${fileDirname}"
+                "cwd": "C:\\msys64\\mingw64\\bin"
             },
             "problemMatcher": [
                 "$gcc"
