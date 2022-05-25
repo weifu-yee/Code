@@ -11,20 +11,19 @@ typedef struct _Vertex{
     bool visited;
     struct _Connect* connect;
 }_Vertex;
-
 typedef struct _Connect{
     struct _Vertex* self;
     struct _Connect* next;
 }_Connect;
-
 _Vertex* vertex[20][20];
 int X_width, Y_width;
-
 void Adjacency_List();
 void make_connect(int i,int j);
+void show();
 
 int main(){
     Adjacency_List();
+    show();
     return 0;
 }
 
@@ -43,7 +42,6 @@ void Adjacency_List(){
             new_vertex->visited = false;
             fscanf(inf,"%c",&(new_vertex->value));
             new_vertex->connect = NULL;
-            // make_connect(i,j);
             j++, X_width++;
         } while( !fscanf(inf,"%[\n]",&_n) );
         i++, Y_width++;
@@ -54,21 +52,19 @@ void Adjacency_List(){
         }
     }
     fclose(inf);
-
-    printf("\nX:%d \tY:%d\n",X_width,Y_width);
-    for(int i = 0; i < Y_width; i++){
-        for(int j = 0; j < X_width; j++){
-            _Connect* curr = vertex[i][j]->connect;
-            printf("(%d,%d):",vertex[i][j]->x,vertex[i][j]->y);
-            printf("%c ",vertex[i][j]->value);
-
-            while(curr){
-                printf("->(%d,%d)",curr->self->x,curr->self->y);
-                curr = curr->next;
-            }
-        }
-        printf("\n");
-    }
+    //printf("\nX:%d \tY:%d\n",X_width,Y_width);
+    // for(int i = 0; i < Y_width; i++){
+    //     for(int j = 0; j < X_width; j++){
+    //         _Connect* curr = vertex[i][j]->connect;
+    //         //printf("(%d,%d):",vertex[i][j]->x,vertex[i][j]->y);
+    //         printf("%c ",vertex[i][j]->value);
+    //         // while(curr){
+    //         //     printf("->(%d,%d)",curr->self->x,curr->self->y);
+    //         //     curr = curr->next;
+    //         // }
+    //     }
+    //     printf("\n");
+    // }
 }
 
 void make_connect(int i,int j){
@@ -83,7 +79,7 @@ void make_connect(int i,int j){
                 _Connect* curr = vertex[i][j]->connect;
                 _Connect* rear = vertex[i][j]->connect;
                 int n = 0;
-                while(curr){
+                while(curr){        //triversal curr to NULL
                     curr = curr->next;
                     if(n)   rear = rear->next;
                     n++;
@@ -91,11 +87,19 @@ void make_connect(int i,int j){
                 curr = (_Connect*) malloc( sizeof( _Connect));
                 curr->self = vertex[new_i][new_j];
                 curr->next = NULL;
-                if(n == 0){
-                    vertex[i][j]->connect = curr;
-                }else{
-                    rear->next = curr;
-                }
+                if(n == 0)      vertex[i][j]->connect = curr;
+                else        rear->next = curr;
         }
     }
+}
+
+void show(){
+    system("CLS");
+    for( int i = 0; i < Y_width; i++){
+        for( int j = 0; j < X_width; j++){
+            printf("%c",vertex[i][j]->value);
+        }
+        printf("\n");
+    }
+    Sleep(100);
 }
