@@ -15,27 +15,35 @@ typedef struct _Connect{
     struct _Vertex* self;
     struct _Connect* next;
 }_Connect;
+typedef struct _Stack{
+    _Vertex* node;
+    _Stack* next;
+}_Stack;
 
 _Vertex* vertex[20][20];
 int X_width, Y_width;       //X,Y width
+_Stack* top = NULL;       //the top of stack;
+_Vertex* last;
 
 _Vertex* Adjacency_List();      //construct adjacency list
 void make_connect(int i,int j);     //make junction
 void show();        //print the graph
 void run(_Vertex* start);
+void push(_Connect* curr);
+_Connect* pop();
 
 int main(){
     _Vertex* start = Adjacency_List();
     for(int i = 0; i < Y_width; i++)
         for(int j = 0; j < X_width; j++)
             make_connect(i,j);
-    run(start);
     show();
+    run(start);
     return 0;
 }
 
 _Vertex* Adjacency_List(){
-    FILE* inf = fopen("D:/Code/WEEK/week15/input.txt","r");
+    FILE* inf = fopen("D:/Code/final_project/input.txt","r");
     int i = 0;
     _Vertex* start;
     while( !feof( inf)){
@@ -109,14 +117,42 @@ void show(){
 void run(_Vertex* start){
     int gotcha = 0;
     _Connect* curr = start->connect;
+    last = start;
+    start->visited = true;
+    //push(curr);
     while( !gotcha){
-        if( curr && curr->self->visited == false){
-            push(curr);
+        if( curr){
+            if( curr->self->visited == false)
+                push( curr);
+            else if( curr && curr->self->x == 8 && curr->self->y == 8)     gotcha = 1;
+            else       curr = curr->next;
+        }else{
+            curr = pop();
             show();
-        }else if( curr->self->x == 8 && curr->self->y == 8)     gotcha = 1;
-        else{
-            curr = pop( curr);
-            show();
+            if( !curr)      gotcha = -1;
         }
     }
+    printf("\ngotcha:%d\n",gotcha);
+}
+
+void push(_Connect* curr){
+    _Stack* new_stack = (_Stack*) malloc( sizeof( _Stack));
+    new_stack->next = top;
+    top = new_stack;
+    new_stack->node = curr->self;
+    curr->self->visited = true;
+}
+
+_Connect* pop(){
+    if( !top)   return NULL;
+    top->node->value = '2';
+    top->node->visited = true;
+    last->value = '1';
+    last = top->node;
+    _Connect* curr = top->node->connect;
+    _Stack* temp;
+    temp = top;
+    top = top->next;
+    free(temp);
+    return curr;
 }
