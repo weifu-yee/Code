@@ -52,16 +52,16 @@ void Adjacency_List(){
         }
     }
     fclose(inf);
-    //printf("\nX:%d \tY:%d\n",X_width,Y_width);
+    // printf("\nX:%d \tY:%d\n",X_width,Y_width);
     // for(int i = 0; i < Y_width; i++){
     //     for(int j = 0; j < X_width; j++){
     //         _Connect* curr = vertex[i][j]->connect;
-    //         //printf("(%d,%d):",vertex[i][j]->x,vertex[i][j]->y);
+    //         printf("(%d,%d):",vertex[i][j]->x,vertex[i][j]->y);
     //         printf("%c ",vertex[i][j]->value);
-    //         // while(curr){
-    //         //     printf("->(%d,%d)",curr->self->x,curr->self->y);
-    //         //     curr = curr->next;
-    //         // }
+    //         while(curr){
+    //             printf("->(%d,%d)",curr->self->x,curr->self->y);
+    //             curr = curr->next;
+    //         }
     //     }
     //     printf("\n");
     // }
