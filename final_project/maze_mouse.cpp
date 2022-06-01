@@ -4,6 +4,13 @@
 #include <conio.h>
 #include <windows.h>
 
+//~ ~ ~ ~ ~ ~ ~ ~ ~ ~FILE~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
+FILE* file(){
+    FILE* inf = fopen("D:/Code/final_project/input.txt","r");
+    return inf;
+}
+
+//~ ~ ~ ~ ~ ~ ~ ~ ~ ~Structures~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 typedef struct _Vertex{
     char value;
     int x;
@@ -19,31 +26,45 @@ typedef struct _Stack{
     _Vertex* node;
     _Stack* next;
 }_Stack;
+typedef struct _CurrLast{
+    _Connect* curr;
+    _Vertex* last;
+}_CurrLast;
+typedef struct _Vehicle{
+    _Vertex* driver;        //the driver's vertex;
+    int face;       //determine the direction;
+}_Vehicle;
 
-_Vertex* vertex[20][20];
+//~ ~ ~ ~ ~ ~ ~ ~ ~ ~Global Variables~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
+_Vertex* vertex[20][20];    //the map's vertex which input;
 int X_width, Y_width;       //X,Y width
 _Stack* top = NULL;       //the top of stack;
-_Vertex* last;
+int Fuel_consumption = 0;       //To compute the fuel consumption;
 
+//~ ~ ~ ~ ~ ~ ~ ~ ~ ~Functions~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 _Vertex* Adjacency_List();      //construct adjacency list
 void make_connect(int i,int j);     //make junction
+void make_connect_loop();     //loop to make junction
 void show();        //print the graph
-void run(_Vertex* start);
-void push(_Connect* curr);
-_Connect* pop();
+void run(_Vertex* start);       //run from the start;
+void push(_Connect* curr);      //push into stack;
+void Ver_push(_Vertex* curr);
+_CurrLast pop(_Vertex* last);
+void PrintStack();
 
+//~ ~ ~ ~ ~ ~ ~ ~ ~ ~main~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 int main(){
     _Vertex* start = Adjacency_List();
-    for(int i = 0; i < Y_width; i++)
-        for(int j = 0; j < X_width; j++)
-            make_connect(i,j);
+    make_connect_loop();
     show();
     run(start);
+    printf("\nFuel_consumption: %d \n",Fuel_consumption);
+    PrintStack();
     return 0;
 }
 
 _Vertex* Adjacency_List(){
-    FILE* inf = fopen("D:/Code/final_project/input.txt","r");
+    FILE* inf = file();
     int i = 0;
     _Vertex* start;
     while( !feof( inf)){
@@ -98,6 +119,12 @@ void make_connect(int i,int j){
     }
 }
 
+void make_connect_loop(){
+    for(int i = 0; i < Y_width; i++)
+        for(int j = 0; j < X_width; j++)
+            make_connect(i,j);
+}
+
 void show(){
     system("CLS");
     for( int i = 0; i < Y_width; i++){
@@ -105,30 +132,34 @@ void show(){
             if(vertex[i][j]->value == '0')
                 printf("X");
             if(vertex[i][j]->value == '1')
-                printf(" ");
+                printf("-");
             if(vertex[i][j]->value == '2')
                 printf("o");
         }
         printf("\n");
     }
-    Sleep(100);
+    Sleep(50);
 }
 
 void run(_Vertex* start){
     int gotcha = 0;
     _Connect* curr = start->connect;
-    last = start;
+    _Vertex* last = start;
     start->visited = true;
-    //push(curr);
+    Ver_push(start);
     while( !gotcha){
         if( curr){
             if( curr->self->visited == false)
                 push( curr);
-            else if( curr && curr->self->x == 8 && curr->self->y == 8)     gotcha = 1;
-            else       curr = curr->next;
+            else if( curr && curr->self->x == 8 && curr->self->y == 8){
+                gotcha = 1;
+                break;
+            }
+            curr = curr->next;
         }else{
-            curr = pop();
-            show();
+            _CurrLast CL = pop(last);
+            curr = CL.curr;
+            last = CL.last;
             if( !curr)      gotcha = -1;
         }
     }
@@ -140,19 +171,80 @@ void push(_Connect* curr){
     new_stack->next = top;
     top = new_stack;
     new_stack->node = curr->self;
-    curr->self->visited = true;
+    Fuel_consumption --;
 }
 
-_Connect* pop(){
-    if( !top)   return NULL;
+void Ver_push(_Vertex* node){
+    _Stack* new_stack = (_Stack*) malloc( sizeof( _Stack));
+    new_stack->next = top;
+    top = new_stack;
+    new_stack->node = node;
+    Fuel_consumption --;
+}
+
+// _Connect* pop(){
+//     if( !top)   return NULL;
+//     bool self_push_or_not = false;
+//     if(top->node->visited == false)        self_push_or_not = true;
+//     top->node->value = '2';
+//     top->node->visited = true;
+//     last->value = '1';
+//     last = top->node;
+//     _Vertex* self_ = top->node;
+//     _Stack* to_free;
+//     to_free = top;
+//     top = top->next;
+//     free(to_free);
+//     if(self_push_or_not)        self_push(self_);
+//     _Connect* next_curr = top->node->connect;
+//     return next_curr;
+// }
+
+_CurrLast pop(_Vertex* last){
+    if( !top)   return {NULL,NULL};
     top->node->value = '2';
+    bool visited_or_not = false;
+    if(top->node->visited == true)
+        visited_or_not = true;
     top->node->visited = true;
     last->value = '1';
-    last = top->node;
-    _Connect* curr = top->node->connect;
-    _Stack* temp;
-    temp = top;
-    top = top->next;
-    free(temp);
-    return curr;
+    bool same_or_not = true;
+    if(last != top->node){
+        last = top->node;
+        same_or_not = false;
+    }
+    _Vertex* self_ = top->node;
+    _Connect* next_curr = top->node->connect;
+    if(visited_or_not){     //if the pop-ed vertex hadn't been visited, won't truely pop it;
+        _Stack* To_free;
+        To_free = top;
+        top = top->next;
+        free(To_free);
+    }
+    if(!same_or_not){       //if the pop-ed vertex is curr itself, won't show it;
+        show();
+    }
+    _CurrLast CurrLast = {next_curr,last};
+    Fuel_consumption ++;
+    return CurrLast;
 }
+
+void PrintStack(){
+    int numOFstack = 0;
+        if(!top){
+            printf("No~");
+            return;
+        }
+        printf("\nSTACK:(%d,%d)\n",top->node->x,top->node->y);
+        top = top->next;
+        while(top){
+            for(int i = 0; i < numOFstack; i ++)    printf(" ");
+            printf("->(%d,%d)\n",top->node->x,top->node->y);
+            top = top->next;
+            numOFstack ++;
+        }
+        for(int i = 0; i < numOFstack; i ++)    printf(" ");
+        printf("->NULL\n");
+        return;
+}
+
