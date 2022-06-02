@@ -26,10 +26,6 @@ typedef struct _Stack{
     _Vertex* node;
     _Stack* next;
 }_Stack;
-typedef struct _CurrLast{
-    _Connect* curr;
-    _Vertex* last;
-}_CurrLast;
 typedef struct _Vehicle{
     _Vertex* driver;        //the driver's vertex;
     int face;       //determine the direction;
@@ -49,7 +45,7 @@ void show();        //print the graph
 void run(_Vertex* start);       //run from the start;
 void push(_Connect* curr);      //push into stack;
 void Ver_push(_Vertex* curr);
-_CurrLast pop(_Vertex* last);
+void pop(_Connect** curr_ptr,_Vertex** last_ptr);
 void PrintStack();
 void forward(_Vehicle*);
 void backward(_Vehicle*);
@@ -155,7 +151,7 @@ void show(){
         }
         printf("\n");
     }
-    Sleep(50);
+    Sleep(1000);
 }
 
 void run(_Vertex* start){
@@ -174,9 +170,7 @@ void run(_Vertex* start){
             }
             curr = curr->next;
         }else{
-            _CurrLast CL = pop(last);
-            curr = CL.curr;
-            last = CL.last;
+            pop( &curr, &last);
             if( !curr)      gotcha = -1;
         }
     }
@@ -217,21 +211,23 @@ void Ver_push(_Vertex* node){
 //     return next_curr;
 // }
 
-_CurrLast pop(_Vertex* last){
-    if( !top)   return {NULL,NULL};
+void pop(_Connect** curr_ptr,_Vertex** last_ptr){
+    if( !top){
+        *curr_ptr = NULL;
+        return;
+    }
     top->node->value = '2';
     bool visited_or_not = false;
     if(top->node->visited == true)
         visited_or_not = true;
     top->node->visited = true;
-    last->value = '1';
+    (*last_ptr)->value = '1';
     bool same_or_not = true;
-    if(last != top->node){
-        last = top->node;
+    if(*last_ptr != top->node){
+        *last_ptr = top->node;
         same_or_not = false;
     }
-    _Vertex* self_ = top->node;
-    _Connect* next_curr = top->node->connect;
+    *curr_ptr = top->node->connect;
     if(visited_or_not){     //if the pop-ed vertex hadn't been visited, won't truely pop it;
         _Stack* To_free;
         To_free = top;
@@ -241,9 +237,8 @@ _CurrLast pop(_Vertex* last){
     if(!same_or_not){       //if the pop-ed vertex is curr itself, won't show it;
         show();
     }
-    _CurrLast CurrLast = {next_curr,last};
     Fuel_consumption ++;
-    return CurrLast;
+    return;
 }
 
 void PrintStack(){
