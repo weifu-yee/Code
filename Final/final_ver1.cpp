@@ -33,7 +33,7 @@ typedef struct _Vehicle{
 }_Vehicle;
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~Global Variables~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
-_Vertex* vertex[20][20];    //the map's vertex which input;
+_Vertex* vertex[50][50];    //the map's vertex which input;
 int X_width, Y_width;       //X,Y width
 _Stack* top = NULL;       //the top of stack;
 int Fuel_consumption = 0;       //To compute the fuel consumption;
@@ -92,7 +92,7 @@ int main1(){
 int main(){
     _Vehicle* start = Adjacency_List();
     make_connect_loop();
-    Verify_drive(0,1,10,0);
+    Verify_drive(3,5,10,1);
     show();
     system("Pause");
     update_car(true,start);
