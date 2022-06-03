@@ -38,36 +38,43 @@ int X_width, Y_width;       //X,Y width
 _Stack* top = NULL;       //the top of stack;
 int Fuel_consumption = 0;       //To compute the fuel consumption;
 
-//~ ~ ~ ~ ~ ~ ~ ~ ~ ~Function assignments~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
+//~ ~ ~ ~ ~ ~ ~ ~ ~ ~Function declaration~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 _Vehicle* Adjacency_List();      //construct adjacency list
 void make_connect(int i,int j);     //make junction
 void make_connect_loop();     //loop to make junction
 int axis_addition(int axis, int initial, int face);
 void show();        //print the graph
+void update_car(bool curr_last,_Vehicle* car);
 void run(_Vehicle* start);       //run from the start;
 void push(_Connect* curr);      //push into stack;
 void Ver_push(_Vertex* curr);
 void pop(_Connect** curr_ptr,_Vertex** last_ptr);
 void PrintStack();
-bool forward(_Vehicle*);
-bool backward(_Vehicle*);
-bool turnright(_Vehicle*);
-bool turnleft(_Vehicle*);
-bool check_drive(bool bo,int* direction,_Vehicle** curr,int* new_x,int* new_y,int t1,int t2);
+bool forward(int* car_face,int* new_x,int* new_y);
+bool backward(int* car_face,int* new_x,int* new_y);
+bool turnright(int* car_face,int* new_x,int* new_y);
+bool turnleft(int* car_face,int* new_x,int* new_y);
+bool check_drive(bool offset_or_not,int car_face,int* new_x,int* new_y,int dir,int ofs);
+void car_offset(int* new_x,int* new_y,int car_face,int ofs);
 void Verify_drive(int t,int X,int Y,int face);
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~Function wrappers~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
-bool drive(int t,_Vehicle* car){ 
-    bool T_or_F; 
-    bool (*drive[])(_Vehicle*) = {
+bool drive(int t,_Vehicle* car){
+    bool (*drive[])(int* car_face,int* new_x,int* new_y) = {
         forward,
         backward,
         turnright,
         turnleft
     };
-    t %= 4;
-    T_or_F = (*drive[t])(car);
-    return T_or_F;
+    int car_face = car->face;
+    int new_x = car->driver->x;
+    int new_y = car->driver->y;
+    if( !(*drive[t])(&car_face,&new_x,&new_y))       return false;  //if can't drive;
+    update_car(false,car);          //if can drive;
+    car->driver = vertex[new_y][new_x];
+    car->face = car_face;
+    update_car(true,car);
+    return true;
 }
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~main~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
@@ -85,7 +92,14 @@ int main1(){
 int main(){
     _Vehicle* start = Adjacency_List();
     make_connect_loop();
-    Verify_drive(3,13,5,0);
+    Verify_drive(0,1,10,0);
+    show();
+    system("Pause");
+    update_car(true,start);
+    show();system("Pause");
+    update_car(false,start);
+    show();
+    return 0;
 }
 
 _Vehicle* Adjacency_List(){
@@ -138,18 +152,19 @@ _Vehicle* Adjacency_List(){
 void make_connect(int i,int j){
     int x_add[4] = {0,1,0,-1}, y_add[4] = {-1,0,1,0};
     for( int k = 3; k >= 0; k--){
-        int new_i = i + y_add[k], new_j = j + x_add[k];
         if(vertex[i][j]->value == '0')    continue;
+        int new_i = axis_addition(1, i, k);
+        int new_j = axis_addition(0, j, k);
         if(new_i<0 || new_i>=Y_width || new_j<0 || new_j>=X_width)    continue;
         switch( vertex[new_i][new_j]->value){
             case '0':     break;
             case '2':   ;
             case '1':   ;
-                _Connect* New = (_Connect*) malloc( sizeof( _Connect));
-                New->next = vertex[i][j]->connect;
-                New->self = vertex[new_i][new_j];
-                New->face = k;
-                vertex[i][j]->connect = New;
+                _Connect* new_connect = (_Connect*) malloc( sizeof( _Connect));
+                new_connect->next = vertex[i][j]->connect;
+                new_connect->self = vertex[new_i][new_j];
+                new_connect->face = k;
+                vertex[i][j]->connect = new_connect;
         }
     }
 }
@@ -178,6 +193,37 @@ void show(){
         printf("\n");
     }
     Sleep(50);
+}
+void update_car(bool curr_last,_Vehicle* car){
+    int i = car->driver->y;
+    int j = car->driver->x;
+    int k = car->face;
+    if( curr_last){         //true = curr;
+        vertex[i][j]->value = '3';
+        for(int l = 0;l < 2;l ++){
+            car_offset(&j,&i,k,2);
+            vertex[i][j]->value = '2';
+        }
+        car_offset(&j,&i,k,1);
+        vertex[i][j]->value = '2';
+        for(int l = 0;l < 2;l ++){
+            car_offset(&j,&i,k,0);
+            vertex[i][j]->value = '2';
+        }
+    }else{          //false = last;
+        vertex[i][j]->value = '1';
+        for(int l = 0;l < 2;l ++){
+            car_offset(&j,&i,k,2);
+            vertex[i][j]->value = '1';
+        }
+        car_offset(&j,&i,k,1);
+        vertex[i][j]->value = '1';
+        for(int l = 0;l < 2;l ++){
+            car_offset(&j,&i,k,0);
+            vertex[i][j]->value = '1';
+        }
+    }
+    return;
 }
 void run(_Vehicle* start){
     int gotcha = 0;
@@ -263,56 +309,50 @@ void PrintStack(){
         printf("->NULL\n");
         return;
 }
-bool forward(_Vehicle* curr){
-    int direction = (curr->face) % 4;
-    int new_x = curr->driver->x;
-    int new_y = curr->driver->y;
-    if( !check_drive(false,&direction,&curr,&new_x,&new_y,0,0) )       return false;
-    if( !check_drive(true,&direction,&curr,&new_x,&new_y,1,0) )       return false;
+bool forward(int* car_face,int* new_x,int* new_y){
+    if( !check_drive(false,*car_face,new_x,new_y,0,0) )       return false;
+    int new_x_prime = *new_x;
+    int new_y_prime = *new_y;
+    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,0,1) )       return false;
+    car_offset(new_x,new_y,*car_face,0);
     return true;
 }
-bool backward(_Vehicle* curr){
-    int direction = ( (curr->face) + 2) % 4;
-    int new_x = axis_addition(0,curr->driver->x,direction);
-    int new_y = axis_addition(1,curr->driver->y,direction);
-    if( !check_drive(true,&direction,&curr,&new_x,&new_y,2,2) )       return false;
-    if( !check_drive(true,&direction,&curr,&new_x,&new_y,1,2) )       return false;
+bool backward(int* car_face,int* new_x,int* new_y){
+    check_drive(true,*car_face,new_x,new_y,2,2);
+    if( !check_drive(true,*car_face,new_x,new_y,2,2) )       return false;
+    if( !check_drive(true,*car_face,new_x,new_y,2,1) )       return false;
     return true;
 }
-bool turnright(_Vehicle* curr){
-    int direction = ( (curr->face) + 1) % 4;
-    int new_x = axis_addition(0,curr->driver->x,direction);
-    int new_y = axis_addition(1,curr->driver->y,direction);
-    if( !check_drive(false,&direction,&curr,&new_x,&new_y,1,1) )       return false;
-    if( !check_drive(true,&direction,&curr,&new_x,&new_y,2,1) )       return false;
-    if( !check_drive(true,&direction,&curr,&new_x,&new_y,2,1) )       return false;
+bool turnright(int* car_face,int* new_x,int* new_y){
+    if( !check_drive(true,*car_face,new_x,new_y,1,1) )       return false;
+    if( !check_drive(true,*car_face,new_x,new_y,1,2) )       return false;
+    if( !check_drive(true,*car_face,new_x,new_y,1,2) )       return false;
     return true;
 }
-bool turnleft(_Vehicle* curr){
-    int direction = ( (curr->face) + 3) % 4;
-    int new_x = curr->driver->x;
-    int new_y = curr->driver->y;
-    if( !check_drive(false,&direction,&curr,&new_x,&new_y,2,3) )       return false;
-    if( !check_drive(true,&direction,&curr,&new_x,&new_y,2,3) )       return false;
-    if( !check_drive(true,&direction,&curr,&new_x,&new_y,2,3) )       return false;
+bool turnleft(int* car_face,int* new_x,int* new_y){
+    if( !check_drive(false,*car_face,new_x,new_y,3,0) )       return false;
+    if( !check_drive(true,*car_face,new_x,new_y,3,2) )       return false;
+    if( !check_drive(true,*car_face,new_x,new_y,3,2) )       return false;
     return true;
 }
-bool check_drive(bool bo,int* direction,_Vehicle** curr,int* new_x,int* new_y,int t1,int t2){
-    *direction = ( ( (*curr)->face) + t1 ) % 4;
-    if( bo){
-        *new_x = axis_addition(0,*new_x,*direction);
-        *new_y = axis_addition(1,*new_y,*direction);
-    }
+bool check_drive(bool offset_or_not,int car_face,int* new_x,int* new_y,int dir,int ofs){
+    int direction = ( car_face + dir ) % 4;
+    if( offset_or_not)     car_offset(new_x,new_y,car_face,ofs);
     _Connect* temp = vertex[*new_y][*new_x]->connect;
-    int dir2 = ( ( (*curr)->face) + t2 ) % 4;
-    while( temp && temp->face < dir2){
+    while( temp && temp->face < direction){
         temp = temp->next;
     }
-    if( !temp || temp->face > dir2)      return false;
+    if( !temp || temp->face > direction)      return false;
     return true;
+}
+void car_offset(int* new_x,int* new_y,int car_face,int ofs){
+    int offset = ( car_face + ofs ) % 4;
+    *new_x = axis_addition(0,*new_x,offset);
+    *new_y = axis_addition(1,*new_y,offset);
 }
 void Verify_drive(int t,int X,int Y,int face){
     _Vehicle car = {vertex[Y][X],face};
+    printf("drive[%d]--(%d,%d) face to: %d \t~",t,X,Y,face);
     if( drive(t,&car)){
         printf("Yes");
     }else{
