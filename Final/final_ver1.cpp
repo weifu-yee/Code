@@ -92,13 +92,19 @@ int main1(){
 int main(){
     _Vehicle* start = Adjacency_List();
     make_connect_loop();
-    Verify_drive(3,5,10,1);
+    update_car(false,start);
+    update_car(true,start);
     show();
     system("Pause");
-    update_car(true,start);
-    show();system("Pause");
-    update_car(false,start);
+    Verify_drive(3,start->driver->x,start->driver->y-3,start->face);
     show();
+    // show();
+    // system("Pause");
+    // update_car(true,start);
+    // show();
+    // system("Pause");
+    // update_car(false,start);
+    // show();
     return 0;
 }
 
@@ -198,33 +204,50 @@ void update_car(bool curr_last,_Vehicle* car){
     int i = car->driver->y;
     int j = car->driver->x;
     int k = car->face;
-    if( curr_last){         //true = curr;
-        vertex[i][j]->value = '3';
-        for(int l = 0;l < 2;l ++){
-            car_offset(&j,&i,k,2);
-            vertex[i][j]->value = '2';
-        }
-        car_offset(&j,&i,k,1);
-        vertex[i][j]->value = '2';
-        for(int l = 0;l < 2;l ++){
-            car_offset(&j,&i,k,0);
-            vertex[i][j]->value = '2';
-        }
-    }else{          //false = last;
-        vertex[i][j]->value = '1';
-        for(int l = 0;l < 2;l ++){
-            car_offset(&j,&i,k,2);
-            vertex[i][j]->value = '1';
-        }
-        car_offset(&j,&i,k,1);
-        vertex[i][j]->value = '1';
-        for(int l = 0;l < 2;l ++){
-            car_offset(&j,&i,k,0);
-            vertex[i][j]->value = '1';
-        }
+    vertex[i][j]->value = (curr_last)?'3' : '1';
+    for(int l = 0;l < 2;l ++){
+        car_offset(&j,&i,k,2);
+        vertex[i][j]->value = (curr_last)?'2' : '1';
+    }
+    car_offset(&j,&i,k,1);
+    vertex[i][j]->value = (curr_last)?'2' : '1';
+    for(int l = 0;l < 2;l ++){
+        car_offset(&j,&i,k,0);
+        vertex[i][j]->value = (curr_last)?'2' : '1';
     }
     return;
 }
+// void update_car(bool curr_last,_Vehicle* car){
+//     int i = car->driver->y;
+//     int j = car->driver->x;
+//     int k = car->face;
+//     if( curr_last){         //true = curr;
+//         vertex[i][j]->value = '3';
+//         for(int l = 0;l < 2;l ++){
+//             car_offset(&j,&i,k,2);
+//             vertex[i][j]->value = '2';
+//         }
+//         car_offset(&j,&i,k,1);
+//         vertex[i][j]->value = '2';
+//         for(int l = 0;l < 2;l ++){
+//             car_offset(&j,&i,k,0);
+//             vertex[i][j]->value = '2';
+//         }
+//     }else{          //false = last;
+//         vertex[i][j]->value = '1';
+//         for(int l = 0;l < 2;l ++){
+//             car_offset(&j,&i,k,2);
+//             vertex[i][j]->value = '1';
+//         }
+//         car_offset(&j,&i,k,1);
+//         vertex[i][j]->value = '1';
+//         for(int l = 0;l < 2;l ++){
+//             car_offset(&j,&i,k,0);
+//             vertex[i][j]->value = '1';
+//         }
+//     }
+//     return;
+// }
 void run(_Vehicle* start){
     int gotcha = 0;
     _Connect* curr = start->driver->connect;
@@ -310,29 +333,42 @@ void PrintStack(){
         return;
 }
 bool forward(int* car_face,int* new_x,int* new_y){
-    if( !check_drive(false,*car_face,new_x,new_y,0,0) )       return false;
     int new_x_prime = *new_x;
     int new_y_prime = *new_y;
+    if( !check_drive(false,*car_face,&new_x_prime,&new_y_prime,0,0) )       return false;
     if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,0,1) )       return false;
     car_offset(new_x,new_y,*car_face,0);
     return true;
 }
 bool backward(int* car_face,int* new_x,int* new_y){
-    check_drive(true,*car_face,new_x,new_y,2,2);
-    if( !check_drive(true,*car_face,new_x,new_y,2,2) )       return false;
-    if( !check_drive(true,*car_face,new_x,new_y,2,1) )       return false;
+    int new_x_prime = *new_x;
+    int new_y_prime = *new_y;
+    check_drive(true,*car_face,&new_x_prime,&new_y_prime,2,2);
+    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,2,2) )       return false;
+    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,2,1) )       return false;
+    car_offset(new_x,new_y,*car_face,2);
     return true;
 }
 bool turnright(int* car_face,int* new_x,int* new_y){
     if( !check_drive(true,*car_face,new_x,new_y,1,1) )       return false;
-    if( !check_drive(true,*car_face,new_x,new_y,1,2) )       return false;
-    if( !check_drive(true,*car_face,new_x,new_y,1,2) )       return false;
+    int new_x_prime = *new_x;
+    int new_y_prime = *new_y;
+    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,1,2) )       return false;
+    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,1,2) )       return false;
+    car_offset(new_x,new_y,*car_face,1);
+    *car_face += 1;
+    *car_face %= 4;
     return true;
 }
 bool turnleft(int* car_face,int* new_x,int* new_y){
     if( !check_drive(false,*car_face,new_x,new_y,3,0) )       return false;
-    if( !check_drive(true,*car_face,new_x,new_y,3,2) )       return false;
-    if( !check_drive(true,*car_face,new_x,new_y,3,2) )       return false;
+    int new_x_prime = *new_x;
+    int new_y_prime = *new_y;
+    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,3,2) )       return false;
+    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,3,2) )       return false;
+    car_offset(new_x,new_y,*car_face,2);
+    *car_face += 3;
+    *car_face %= 4;
     return true;
 }
 bool check_drive(bool offset_or_not,int car_face,int* new_x,int* new_y,int dir,int ofs){
@@ -346,7 +382,7 @@ bool check_drive(bool offset_or_not,int car_face,int* new_x,int* new_y,int dir,i
     return true;
 }
 void car_offset(int* new_x,int* new_y,int car_face,int ofs){
-    int offset = ( car_face + ofs ) % 4;
+    int offset = ( ( car_face + ofs ) % 4 );
     *new_x = axis_addition(0,*new_x,offset);
     *new_y = axis_addition(1,*new_y,offset);
 }
