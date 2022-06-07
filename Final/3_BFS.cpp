@@ -7,7 +7,7 @@
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~FILE~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 FILE* file(){
-    FILE* inf = fopen("D:/Code/Final/input1 copy.txt","r");
+    FILE* inf = fopen("D:/Code/Final/input3.txt","r");
     return inf;
 }
 
@@ -56,7 +56,6 @@ bool mission_spot_or_not = false;
 _Queue* front = NULL;
 _Queue* rear = NULL;
 int best_step;
-//int fff = 0;
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~Function declaration~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 _Vehicle* Adjacency_List();      //construct adjacency list
@@ -309,24 +308,23 @@ bool finish_or_not(){
 }
 void enqueue(_Vehicle* car,_StepLog* step_log,int num_of_step,int fuel_consumption,_Unvisited* unvisited){
     _Queue* new_queue = (_Queue*)malloc(sizeof(_Queue));
-    if( rear)       rear->queue_next = new_queue;
-    else    front = new_queue;      //initialization;
-    rear = new_queue;
     new_queue->car = car;
     new_queue->step_log = step_log;
     new_queue->fuel_consumption = fuel_consumption;
     new_queue->num_of_step = num_of_step;
     new_queue->unvisited = unvisited;
-    new_queue->queue_next = NULL;
-    //fff++;
+    new_queue->queue_next = front;
+    if( front)  front->queue_next = new_queue;
+    front = new_queue;
+    return;
 }
 bool dequeue(_SuccessStepLog** succ){
-    update_car(true,front->car);
+    if( !front)      return false;
+    {update_car(true,front->car);
     show();
     update_car(false,front->car);
     _Unvisited* ddddd = front->unvisited;
-
-    if( !front)      return false;
+    }
     if( front->unvisited == NULL){
         ( *succ)->fuel_consumption = front->fuel_consumption;
         ( *succ)->num_of_step = front->num_of_step;
@@ -337,8 +335,14 @@ bool dequeue(_SuccessStepLog** succ){
     int temp_t = -1;     //to save the t that same with front->car;
     _Vehicle* curr_car = front->car;
     int new_num_of_step = front->num_of_step + 1;
+    int fuel_consumption = front->fuel_consumption;
     int new_fuel_consumption;
-    for(int t = 0; t <= 5 ; t ++){
+    _Unvisited* unvisited = front->unvisited;
+    _StepLog* step_log = front->step_log;
+    _Queue* To_free = front;
+    front = front->queue_next;
+    free( To_free);
+    for(int t = 5; t >= 0 ; t --){
         _Vehicle* new_car = (_Vehicle*)malloc(sizeof(_Vehicle));
         if( !drive(t,curr_car,new_car)){        //if it can't go;
             free(new_car);
@@ -346,19 +350,19 @@ bool dequeue(_SuccessStepLog** succ){
         }
         _StepLog* new_step_log = (_StepLog*)malloc(sizeof(_StepLog));
             new_step_log->car = new_car;
-            new_step_log->last = front->step_log;
-        _Unvisited* new_unvisited = copy_unv(front->unvisited); //establish a new and same unv;
+            new_step_log->last = step_log;
+        _Unvisited* new_unvisited = copy_unv(unvisited); //establish a new and same unv;
         delete_unv(new_car,&new_unvisited,t);
         {if( t >= 4)      //classify fuel_cons
-            new_fuel_consumption = front->fuel_consumption + 5;
+            new_fuel_consumption = fuel_consumption + 5;
         else if( t >= 2)
-            new_fuel_consumption = front->fuel_consumption + 2;
+            new_fuel_consumption = fuel_consumption + 2;
         else
-            new_fuel_consumption = front->fuel_consumption + 1;}
-        if( front->step_log->last){
-            if( new_car->driver->x == front->step_log->last->car->driver->x)
-            if( new_car->driver->y == front->step_log->last->car->driver->y)
-            if( new_car->face == front->step_log->last->car->face){
+            new_fuel_consumption = fuel_consumption + 1;}
+        if( step_log->last){
+            if( new_car->driver->x == step_log->last->car->driver->x)
+            if( new_car->driver->y == step_log->last->car->driver->y)
+            if( new_car->face == step_log->last->car->face){
                 if( !another_t)     
                     temp_t = t;        //if not yet other t;
                 continue;
@@ -373,19 +377,16 @@ bool dequeue(_SuccessStepLog** succ){
             drive(temp_t,curr_car,new_car);
             _StepLog* new_step_log = (_StepLog*)malloc(sizeof(_StepLog));
                 new_step_log->car = new_car;
-                new_step_log->last = front->step_log;
-            _Unvisited* new_unvisited = copy_unv(front->unvisited);
+                new_step_log->last = step_log;
+            _Unvisited* new_unvisited = copy_unv(unvisited);
             delete_unv(new_car,&new_unvisited,temp_t);
-            if( temp_t >= 4)     new_fuel_consumption = front->fuel_consumption + 5;
-            else if( temp_t >= 2)     new_fuel_consumption = front->fuel_consumption + 2;
-            else      new_fuel_consumption = front->fuel_consumption + 1;
+            if( temp_t >= 4)     new_fuel_consumption = fuel_consumption + 5;
+            else if( temp_t >= 2)     new_fuel_consumption = fuel_consumption + 2;
+            else      new_fuel_consumption = fuel_consumption + 1;
             enqueue( new_car, new_step_log, new_num_of_step,
                  new_fuel_consumption, new_unvisited);
         }
-    _Queue* To_free = front;
-    recursion_free(front->unvisited);
-    front = front->queue_next;
-    free( To_free);
+    recursion_free(unvisited);
     return true;
 }
 void delete_unv(_Vehicle* car,_Unvisited** ptr_unv,int t){
