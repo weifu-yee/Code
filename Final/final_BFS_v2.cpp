@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <conio.h>
 #include <windows.h>
+#include <math.h>
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~FILE~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 FILE* file(){
@@ -110,54 +111,10 @@ int main(){
     _Vehicle* start = Adjacency_List();
     make_connect_loop();
     if( run(start) )
-        printf("best_step:%d",best_step);
+        printf("\nbest_step:%d",best_step);
     printf((mission_spot_or_not)?"\nmission~":"\nall~");
     return 0;
 }
-
-int main2(){
-    _Vehicle* start = Adjacency_List();
-    make_connect_loop();
-    update_car(true,start);
-    show();
-    system("Pause");
-    _StepLog* curr = (_StepLog*)malloc(sizeof(_StepLog));
-    curr->car = (_Vehicle*)malloc(sizeof(_Vehicle));
-    curr->car->driver = vertex[8][4];
-    curr->car->face = 0;
-    curr->last = (_StepLog*)malloc(sizeof(_StepLog));
-    curr->last->car = (_Vehicle*)malloc(sizeof(_Vehicle));
-    curr->last->car->driver = vertex[7][4];
-    curr->last->car->face = 0;
-    curr->last->last = (_StepLog*)malloc(sizeof(_StepLog));
-    curr->last->last->car = (_Vehicle*)malloc(sizeof(_Vehicle));
-    curr->last->last->car->driver = vertex[8][5];
-    curr->last->last->car->face = 1;
-    curr->last->last->last = NULL;
-    printf("aa");
-    recursion_show(curr);
-
-    return 0;
-}
-
-// int main(){
-//     _Vehicle* start = Adjacency_List();
-//     make_connect_loop();
-//     update_car(false,start);
-//     update_car(true,start);
-//     show();
-//     system("Pause");
-//     Verify_drive(3,start->driver->x,start->driver->y-3,start->face);
-//     show();
-//     // show();
-//     // system("Pause");
-//     // update_car(true,start);
-//     // show();
-//     // system("Pause");
-//     // update_car(false,start);
-//     // show();
-//     return 0;
-// }
 
 _Vehicle* Adjacency_List(){
     FILE* inf = file();
@@ -287,8 +244,24 @@ int run(_Vehicle* start){
     _SuccessStepLog* succ = (_SuccessStepLog*)malloc(sizeof(_SuccessStepLog));
     while( dequeue(&succ));
     best_step = succ->num_of_step;
-    system("Pause");
+    // _SuccessStepLog* succ2 = (_SuccessStepLog*)malloc(sizeof(_SuccessStepLog));
+    // float i_max = pow(5,5*best_step) - pow(5,best_step);
+    // printf("i_max = %f",i_max);
+    // printf("~stop~");
+    // system("Pause");
+    // for(float i = 0; i < i_max; i ++){
+    //     if( !dequeue(&succ2) )      continue;
+    //     if( succ2->fuel_consumption < succ->fuel_consumption){
+    //         succ = succ2;
+    //         printf("\nfff~~~");
+    //         system("Pause");
+    //     }else{
+    //         printf("\nnnn~~~");
+    //         system("Pause");
+    //     }
+    // }
     recursion_show(succ->head);
+    printf("\nfuel_consumption:%d",succ->fuel_consumption);
     return 1;
 }
 _Unvisited* build_unvisited(){
@@ -348,16 +321,10 @@ void enqueue(_Vehicle* car,_StepLog* step_log,int num_of_step,int fuel_consumpti
     //fff++;
 }
 bool dequeue(_SuccessStepLog** succ){
-    //Sleep(10);
-    //system("Pause");
     update_car(true,front->car);
     show();
     update_car(false,front->car);
     _Unvisited* ddddd = front->unvisited;
-    // while(ddddd){
-    //     printf("(%d,%d)",ddddd->vertex->x,ddddd->vertex->x);
-    //     ddddd = ddddd->next;
-    // }
 
     if( !front)      return false;
     if( front->unvisited == NULL){
