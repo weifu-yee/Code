@@ -7,7 +7,7 @@
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~FILE~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 FILE* file(){
-    FILE* inf = fopen("D:/Code/Final/input2.txt","r");
+    FILE* inf = fopen("D:/Code/Final/INPUT file/input2.txt","r");
     return inf;
 }
 

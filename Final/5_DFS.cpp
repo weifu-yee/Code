@@ -7,7 +7,7 @@
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~FILE~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 FILE* file(){
-    FILE* inf = fopen("D:/Code/Final/input2.txt","r");
+    FILE* inf = fopen("D:/Code/Final/INPUT file/input1.txt","r");
     return inf;
 }
 
@@ -28,11 +28,11 @@ typedef struct _Vehicle{
     int face;       //determine the direction;
 }_Vehicle;
 typedef struct _Queue{
+    struct _Queue* queue_next;
     _Vehicle* car;
     int fuel_consumption;
     int num_of_step;
     struct _StepLog* step_log;
-    struct _Queue* queue_next;
     struct _Unvisited* unvisited;
 }_Queue;
 typedef struct _StepLog{
@@ -53,8 +53,7 @@ typedef struct _SuccessStepLog{
 _Vertex* vertex[50][50];    //the map's vertex which input;
 int X_width, Y_width;       //X,Y width
 bool mission_spot_or_not = false;
-_Queue* front = NULL;
-_Queue* rear = NULL;
+_Queue* top = NULL;
 int best_step;
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~Function declaration~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
@@ -243,8 +242,17 @@ int run(_Vehicle* start){
     push(start,start_step_log,0,0,start_unvisited);
     _SuccessStepLog* succ = (_SuccessStepLog*)malloc(sizeof(_SuccessStepLog));
     int _pop = 0;
-    while( !_pop){
+    while( _pop == 0){
         _pop = pop(&succ);
+        //printf("\n_pop~~%d\n",_pop);
+        // _Queue* curre = top;
+        // int i = 0;
+        // while(curre){
+        //     printf("%d",i);
+        //     i ++;
+        //     curre = curre->queue_next;
+        // }
+        // system("Pause");
     }
     best_step = succ->num_of_step;
     // _SuccessStepLog* succ2 = (_SuccessStepLog*)malloc(sizeof(_SuccessStepLog));
@@ -264,8 +272,8 @@ int run(_Vehicle* start){
     //     }
     // }
     if( _pop == 1)      recursion_show(succ->head);
-    else        printf("\n\nrurururu~~~\n");
-    printf("\nfuel_consumption:%d",succ->fuel_consumption);
+    else if(_pop == -1)        printf("\n\nrurururu~~~\n");
+    //printf("\nfuel_consumption:%d",succ->fuel_consumption);
     return 1;
 }
 _Unvisited* build_unvisited(){
@@ -318,37 +326,53 @@ void push(_Vehicle* car,_StepLog* step_log,int num_of_step,int fuel_consumption,
     new_queue->fuel_consumption = fuel_consumption;
     new_queue->num_of_step = num_of_step;
     new_queue->unvisited = unvisited;
-    new_queue->queue_next = front;
-    if( front)  front->queue_next = new_queue;
-    front = new_queue;
+    new_queue->queue_next = top;
+    if( top != NULL)  new_queue->queue_next = top;
+    top = new_queue;
     return;
 }
 int pop(_SuccessStepLog** succ){
-    if( !front)      return -1;
-    {update_car(true,front->car);       //show the process
+    if( !top)      return -1;
+    {update_car(true,top->car);       //show the process
     show();
-    update_car(false,front->car);
-    _Unvisited* ddddd = front->unvisited;
+    update_car(false,top->car);
     }
     
-    if( front->unvisited == NULL){
-        ( *succ)->fuel_consumption = front->fuel_consumption;
-        ( *succ)->num_of_step = front->num_of_step;
-        ( *succ)->head = front->step_log;
+    if( top->unvisited == NULL){
+        ( *succ)->fuel_consumption = top->fuel_consumption;
+        ( *succ)->num_of_step = top->num_of_step;
+        ( *succ)->head = top->step_log;
         return 1;
     }
     bool another_t = false;
-    int temp_t = -1;     //to save the t that same with front->car;
-    _Vehicle* curr_car = front->car;
-    int new_num_of_step = front->num_of_step + 1;
-    int fuel_consumption = front->fuel_consumption;
+    
+    // printf("pop(%d,%d)\tface:%d\n",top->car->driver->x
+    //     ,top->car->driver->y,top->car->face);
+
+    // _StepLog* cucucu = top->step_log;
+    // while( cucucu){
+    //     printf("\tLog:(%d,%d)\tface:%d\n",cucucu->car->driver->x,
+    //         cucucu->car->driver->y,cucucu->car->face);
+    //     cucucu = cucucu->last;
+    // }
+    // system("Pause");
+
+    int temp_t = -1;     //to save the t that same with top->car;
+    _Vehicle* curr_car = top->car;
+    int new_num_of_step = top->num_of_step + 1;
+    int fuel_consumption = top->fuel_consumption;
     int new_fuel_consumption;
-    _Unvisited* unvisited = front->unvisited;
-    _StepLog* step_log = front->step_log;
-    _Queue* To_free = front;
-    front = front->queue_next;
-    free( To_free);
-    if( triversal(step_log) >= 4)        return 0;
+    _Unvisited* unvisited = top->unvisited;
+    _StepLog* step_log = top->step_log;
+    _Queue* To_free = top;
+    top = top->queue_next;
+    //free( To_free);
+    if( triversal(step_log) >= 5){      //if the vertex had been visited over 4 times,
+        // printf("dfdf\n");
+        // system("Pause");                //just pop and that go;
+        recursion_free(unvisited);      
+        return 0;
+    }
     for(int t = 5; t >= 0 ; t --){
         _Vehicle* new_car = (_Vehicle*)malloc(sizeof(_Vehicle));
         if( !drive(t,curr_car,new_car)){        //if it can't go;
@@ -377,6 +401,9 @@ int pop(_SuccessStepLog** succ){
         }   
         push( new_car, new_step_log, new_num_of_step,
                  new_fuel_consumption, new_unvisited);
+        // printf("push(%d,%d)\tface:%d\n",top->car->driver->x
+        //     ,top->car->driver->y,top->car->face);
+        //system("Pause");
         another_t = true;
         }
     if(temp_t >= 0 && !another_t){        //when a die path only can back;
@@ -392,26 +419,52 @@ int pop(_SuccessStepLog** succ){
             else      new_fuel_consumption = fuel_consumption + 1;
             push( new_car, new_step_log, new_num_of_step,
                  new_fuel_consumption, new_unvisited);
+            // printf("push(%d,%d)\tface:%d\n",top->car->driver->x
+            //     ,top->car->driver->y,top->car->face);
+            //system("Pause");
         }
+    //system("Pause");
     recursion_free(unvisited);
     return 0;
 }
 int triversal(_StepLog* step_log){
     int vertex_time[Y_width][X_width];
-    for( int i = 0; i < Y_width; i ++){
-        for( int j = 0; j < X_width; j ++){
+    for( int i = 0; i < X_width; i ++){
+        for( int j = 0; j < Y_width; j ++){
             vertex_time[j][i] = 0;
         }
     }
-    while( step_log){
-        int X = step_log->car->driver->x;
-        int Y = step_log->car->driver->y;
-        vertex_time[Y][X] ++;
-        step_log = step_log->last;
+    _StepLog* curr = step_log;
+    while( curr != NULL){
+        int X,Y;
+            X = curr->car->driver->x;
+            Y = curr->car->driver->y;
+        for( int round = 0; round < 6; round ++){
+            switch( round){
+            case 0:
+                vertex_time[Y][X] ++;
+                break;
+            case 1: ;
+            case 2: ;
+                car_offset(&X,&Y,curr->car->face,2);
+                vertex_time[Y][X] ++;
+                break;
+            case 3:
+                car_offset(&X,&Y,curr->car->face,1);
+                vertex_time[Y][X] ++;
+                break;
+            case 4: ;
+            case 5: ;
+                car_offset(&X,&Y,curr->car->face,0);
+                vertex_time[Y][X] ++;
+                break;
+            }
+        }
+        curr = curr->last;
     }
     int most = 0;
-    for( int i = 0; i < Y_width; i ++){
-        for( int j = 0; j < X_width; j ++){
+    for( int i = 0; i < X_width; i ++){
+        for( int j = 0; j < Y_width; j ++){
             if( vertex_time[j][i] > most)
                 most = vertex_time[j][i];
         }
