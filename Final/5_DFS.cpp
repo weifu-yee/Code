@@ -7,7 +7,7 @@
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~FILE~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 FILE* file(){
-    FILE* inf = fopen("D:/Code/Final/input3.txt","r");
+    FILE* inf = fopen("D:/Code/Final/input2.txt","r");
     return inf;
 }
 
@@ -69,9 +69,10 @@ _Unvisited* build_unvisited();
 _Unvisited* copy_unv(_Unvisited* curr);
 void recursion_copy(_Unvisited* curr,_Unvisited** new_head_of_unv);
 bool finish_or_not();       //check if we get it;
-void enqueue(_Vehicle* car,_StepLog* step_log,int num_of_step,
+void push(_Vehicle* car,_StepLog* step_log,int num_of_step,
              int fuel_consumption,_Unvisited* unvisited);
-bool dequeue(_SuccessStepLog** succ);
+int pop(_SuccessStepLog** succ);
+int triversal(_StepLog* step_log);
 void delete_unv(_Vehicle* car,_Unvisited** ptr_unv,int t);
 _Unvisited* triversal_delete(_Vertex* vertex,_Unvisited* unv);
 void recursion_free(_Unvisited* To_free);
@@ -239,9 +240,12 @@ int run(_Vehicle* start){
     _StepLog* start_step_log = (_StepLog*)malloc(sizeof(_StepLog));
     start_step_log->car = start;
     start_step_log->last = NULL;
-    enqueue(start,start_step_log,0,0,start_unvisited);
+    push(start,start_step_log,0,0,start_unvisited);
     _SuccessStepLog* succ = (_SuccessStepLog*)malloc(sizeof(_SuccessStepLog));
-    while( dequeue(&succ));
+    int _pop = 0;
+    while( !_pop){
+        _pop = pop(&succ);
+    }
     best_step = succ->num_of_step;
     // _SuccessStepLog* succ2 = (_SuccessStepLog*)malloc(sizeof(_SuccessStepLog));
     // float i_max = pow(5,5*best_step) - pow(5,best_step);
@@ -249,7 +253,7 @@ int run(_Vehicle* start){
     // printf("~stop~");
     // system("Pause");
     // for(float i = 0; i < i_max; i ++){
-    //     if( !dequeue(&succ2) )      continue;
+    //     if( !pop(&succ2) )      continue;
     //     if( succ2->fuel_consumption < succ->fuel_consumption){
     //         succ = succ2;
     //         printf("\nfff~~~");
@@ -259,7 +263,8 @@ int run(_Vehicle* start){
     //         system("Pause");
     //     }
     // }
-    recursion_show(succ->head);
+    if( _pop == 1)      recursion_show(succ->head);
+    else        printf("\n\nrurururu~~~\n");
     printf("\nfuel_consumption:%d",succ->fuel_consumption);
     return 1;
 }
@@ -306,7 +311,7 @@ bool finish_or_not(){
     }
     return true;
 }
-void enqueue(_Vehicle* car,_StepLog* step_log,int num_of_step,int fuel_consumption,_Unvisited* unvisited){
+void push(_Vehicle* car,_StepLog* step_log,int num_of_step,int fuel_consumption,_Unvisited* unvisited){
     _Queue* new_queue = (_Queue*)malloc(sizeof(_Queue));
     new_queue->car = car;
     new_queue->step_log = step_log;
@@ -318,18 +323,19 @@ void enqueue(_Vehicle* car,_StepLog* step_log,int num_of_step,int fuel_consumpti
     front = new_queue;
     return;
 }
-bool dequeue(_SuccessStepLog** succ){
-    if( !front)      return false;
-    {update_car(true,front->car);
+int pop(_SuccessStepLog** succ){
+    if( !front)      return -1;
+    {update_car(true,front->car);       //show the process
     show();
     update_car(false,front->car);
     _Unvisited* ddddd = front->unvisited;
     }
+    
     if( front->unvisited == NULL){
         ( *succ)->fuel_consumption = front->fuel_consumption;
         ( *succ)->num_of_step = front->num_of_step;
         ( *succ)->head = front->step_log;
-        return false;
+        return 1;
     }
     bool another_t = false;
     int temp_t = -1;     //to save the t that same with front->car;
@@ -342,6 +348,7 @@ bool dequeue(_SuccessStepLog** succ){
     _Queue* To_free = front;
     front = front->queue_next;
     free( To_free);
+    if( triversal(step_log) >= 4)        return 0;
     for(int t = 5; t >= 0 ; t --){
         _Vehicle* new_car = (_Vehicle*)malloc(sizeof(_Vehicle));
         if( !drive(t,curr_car,new_car)){        //if it can't go;
@@ -368,7 +375,7 @@ bool dequeue(_SuccessStepLog** succ){
                 continue;
             }     
         }   
-        enqueue( new_car, new_step_log, new_num_of_step,
+        push( new_car, new_step_log, new_num_of_step,
                  new_fuel_consumption, new_unvisited);
         another_t = true;
         }
@@ -383,11 +390,33 @@ bool dequeue(_SuccessStepLog** succ){
             if( temp_t >= 4)     new_fuel_consumption = fuel_consumption + 5;
             else if( temp_t >= 2)     new_fuel_consumption = fuel_consumption + 2;
             else      new_fuel_consumption = fuel_consumption + 1;
-            enqueue( new_car, new_step_log, new_num_of_step,
+            push( new_car, new_step_log, new_num_of_step,
                  new_fuel_consumption, new_unvisited);
         }
     recursion_free(unvisited);
-    return true;
+    return 0;
+}
+int triversal(_StepLog* step_log){
+    int vertex_time[Y_width][X_width];
+    for( int i = 0; i < Y_width; i ++){
+        for( int j = 0; j < X_width; j ++){
+            vertex_time[j][i] = 0;
+        }
+    }
+    while( step_log){
+        int X = step_log->car->driver->x;
+        int Y = step_log->car->driver->y;
+        vertex_time[Y][X] ++;
+        step_log = step_log->last;
+    }
+    int most = 0;
+    for( int i = 0; i < Y_width; i ++){
+        for( int j = 0; j < X_width; j ++){
+            if( vertex_time[j][i] > most)
+                most = vertex_time[j][i];
+        }
+    }
+    return most;
 }
 void delete_unv(_Vehicle* car,_Unvisited** ptr_unv,int t){
     _Unvisited* unv = *ptr_unv;
