@@ -7,7 +7,7 @@
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~FILE~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 FILE* file(){
-    FILE* inf = fopen("D:/Code/Final/INPUT file/input1.txt","r");
+    FILE* inf = fopen("D:/Code/Final/INPUT file/input3.txt","r");
     return inf;
 }
 
@@ -111,7 +111,6 @@ int main(){
     make_connect_loop();
     if( run(start) )
         printf("\nbest_step:%d",best_step);
-    printf((mission_spot_or_not)?"\nmission~":"\nall~");
     return 0;
 }
 
@@ -271,9 +270,21 @@ int run(_Vehicle* start){
     //         system("Pause");
     //     }
     // }
-    if( _pop == 1)      recursion_show(succ->head);
-    else if(_pop == -1)        printf("\n\nrurururu~~~\n");
-    //printf("\nfuel_consumption:%d",succ->fuel_consumption);
+
+    if(_pop == -1){
+        printf("\n\nrurururu~~~\n");
+        return -1;
+    }
+    if( _pop == 1){
+        
+        char cmd;
+        do{      
+            recursion_show(succ->head);
+            printf("\nfuel_consumption:%d",succ->fuel_consumption);
+            printf((mission_spot_or_not)?"\nmission~":"\nall~");
+            scanf(" %c",&cmd);
+        }while(cmd != 'q');
+    }
     return 1;
 }
 _Unvisited* build_unvisited(){
@@ -367,7 +378,7 @@ int pop(_SuccessStepLog** succ){
     _Queue* To_free = top;
     top = top->queue_next;
     //free( To_free);
-    if( triversal(step_log) >= 5){      //if the vertex had been visited over 4 times,
+    if( triversal(step_log) >= 7){      //if the vertex had been visited over 4 times,
         // printf("dfdf\n");
         // system("Pause");                //just pop and that go;
         recursion_free(unvisited);      
