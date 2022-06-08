@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 typedef struct word{
     char* initial;
@@ -17,7 +18,6 @@ word* w_insert(word* curr, word** nw, int i);
 
 void n_print(page_number* curr, word* the_word);
 void w_print(word* curr);
-bool icic(char* c,char* w,int i);
 
 word* whead = NULL;
 page_number* nhead  = NULL;
@@ -27,10 +27,18 @@ int main(){
     int n;
     while( scanf("%s%d",w,&n) != EOF ){
         char* _w = (char*)malloc(30 * sizeof(char));
+        word* curr = whead;
+        bool same = false;
+        while( curr){
+            if( !strcmp(curr->initial,w))       same = true;
+            curr = curr->next;
+        }
         for( int i = 0;i < 30; i ++)        *(_w + i) = *(w + i);
         word* nword = (word*)malloc(sizeof(word));
         nword->initial = _w;
-        w_insert(whead,&nword,0);
+        if( !same){
+            w_insert(whead,&nword,0);
+        }
 
         page_number* npagenumber = (page_number*)malloc(sizeof(page_number));
         npagenumber->number = n;
@@ -68,23 +76,24 @@ page_number* n_insert(page_number* curr, page_number** npa){
     }
     return curr;
 }
+
 word* w_insert(word* curr, word** nw, int i){
     if( !whead){
         whead = (*nw);
         ((*nw))->next = NULL;
         return NULL;
     }
-    if( *( (*nw)->initial + i) < *(whead->initial + i)){
+    if(curr == whead && *( (*nw)->initial + i) < *(curr->initial + i)){
         (*nw)->next = whead;
         whead = (*nw);
         return NULL;
     }
-    if( i > 30)     return NULL;
+    if( i > 29)     return NULL;
     word* temp = NULL;
     if( !curr)      return NULL;
     if( *( (*nw)->initial + i) == *(curr->initial + i)){
-        w_insert(whead,nw,i + 1);
-        return NULL;
+        w_insert(curr,nw,i + 1);
+        return curr;
     }
     temp = w_insert(curr->next,nw,i);
     if( *( (*nw)->initial + i) > *(curr->initial + i)){
@@ -100,13 +109,15 @@ word* w_insert(word* curr, word** nw, int i){
     }
     return curr;
 }
+
 void n_print(page_number* curr, word* the_word){
     if( !curr)      return;
-    if( icic(curr->the_word->initial,the_word->initial,0))
+    if( !strcmp(curr->the_word->initial,the_word->initial))
         printf("%d ",curr->number);
     n_print(curr->next,the_word);
     return;
 }
+
 void w_print(word* curr){
     if( !curr)      return;
     printf("%s\n",curr->initial);
@@ -114,10 +125,4 @@ void w_print(word* curr){
     printf("\n");
     w_print(curr->next);
     return;
-}
-bool icic(char* c,char* w,int i){
-    if( i > 30)     return true;
-    if( *(c + i) != *(w + i))   return false;
-    icic(c,w,i + 1);
-    return true;
 }
