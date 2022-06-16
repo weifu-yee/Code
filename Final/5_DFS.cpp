@@ -276,14 +276,9 @@ int run(_Vehicle* start){
         return -1;
     }
     if( _pop == 1){
-        
-        char cmd;
-        do{      
-            recursion_show(succ->head);
-            printf("\nfuel_consumption:%d",succ->fuel_consumption);
-            printf((mission_spot_or_not)?"\nmission~":"\nall~");
-            scanf(" %c",&cmd);
-        }while(cmd != 'q');
+        recursion_show(succ->head);
+        printf("\nfuel_consumption:%d",succ->fuel_consumption);
+        printf((mission_spot_or_not)?"\nmission~":"\nall~");
     }
     return 1;
 }
