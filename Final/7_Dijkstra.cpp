@@ -7,7 +7,7 @@
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~FILE~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 FILE* file(){
-    FILE* inf = fopen("D:/Code/Final/INPUT file/input1.txt","r");
+    FILE* inf = fopen("D:/Code/Final/INPUT file/input3.txt","r");
     return inf;
 }
 
@@ -16,7 +16,6 @@ typedef struct _Vertex{
     char value;
     int x;
     int y;
-    int visit_time;
     struct _Connect* connect;
 }_Vertex;
 typedef struct _Connect{
@@ -29,11 +28,11 @@ typedef struct _Vehicle{
     int face;       //determine the direction;
 }_Vehicle;
 typedef struct _Queue{
+    struct _Queue* queue_next;
     _Vehicle* car;
     int fuel_consumption;
     int num_of_step;
     struct _StepLog* step_log;
-    struct _Queue* queue_next;
     struct _Unvisited* unvisited;
 }_Queue;
 typedef struct _StepLog{
@@ -54,8 +53,7 @@ typedef struct _SuccessStepLog{
 _Vertex* vertex[50][50];    //the map's vertex which input;
 int X_width, Y_width;       //X,Y width
 bool mission_spot_or_not = false;
-_Queue* front = NULL;
-_Queue* rear = NULL;
+_Queue* top = NULL;
 int best_step;
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~Function declaration~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
@@ -73,6 +71,7 @@ bool finish_or_not();       //check if we get it;
 void push(_Vehicle* car,_StepLog* step_log,int num_of_step,
              int fuel_consumption,_Unvisited* unvisited);
 int pop(_SuccessStepLog** succ);
+int triversal(_StepLog* step_log);
 void delete_unv(_Vehicle* car,_Unvisited** ptr_unv,int t);
 _Unvisited* triversal_delete(_Vertex* vertex,_Unvisited* unv);
 void recursion_free(_Unvisited* To_free);
@@ -112,7 +111,6 @@ int main(){
     make_connect_loop();
     if( run(start) )
         printf("\nbest_step:%d",best_step);
-    printf((mission_spot_or_not)?"\nmission~":"\nall~");
     return 0;
 }
 
@@ -130,7 +128,6 @@ _Vehicle* Adjacency_List(){
             vertex[i][j] = new_vertex;
             new_vertex->x = j;
             new_vertex->y = i;
-            new_vertex->visit_time = 3;
             fscanf(inf,"%c",&(new_vertex->value));
             if( new_vertex->value == '3')        mission_spot_or_not = true;
             if( two_or_three && new_vertex->value == '2'){
@@ -244,8 +241,17 @@ int run(_Vehicle* start){
     push(start,start_step_log,0,0,start_unvisited);
     _SuccessStepLog* succ = (_SuccessStepLog*)malloc(sizeof(_SuccessStepLog));
     int _pop = 0;
-    while( !_pop){
+    while( _pop == 0){
         _pop = pop(&succ);
+        //printf("\n_pop~~%d\n",_pop);
+        // _Queue* curre = top;
+        // int i = 0;
+        // while(curre){
+        //     printf("%d",i);
+        //     i ++;
+        //     curre = curre->queue_next;
+        // }
+        // system("Pause");
     }
     best_step = succ->num_of_step;
     // _SuccessStepLog* succ2 = (_SuccessStepLog*)malloc(sizeof(_SuccessStepLog));
@@ -264,9 +270,16 @@ int run(_Vehicle* start){
     //         system("Pause");
     //     }
     // }
-    if( _pop == 1)       recursion_show(succ->head);
-    else        printf("fff");
-    printf("\nfuel_consumption:%d",succ->fuel_consumption);
+
+    if(_pop == -1){
+        printf("\n\nrurururu~~~\n");
+        return -1;
+    }
+    if( _pop == 1){
+        recursion_show(succ->head);
+        printf("\nfuel_consumption:%d",succ->fuel_consumption);
+        printf((mission_spot_or_not)?"\nmission~":"\nall~");
+    }
     return 1;
 }
 _Unvisited* build_unvisited(){
@@ -319,35 +332,53 @@ void push(_Vehicle* car,_StepLog* step_log,int num_of_step,int fuel_consumption,
     new_queue->fuel_consumption = fuel_consumption;
     new_queue->num_of_step = num_of_step;
     new_queue->unvisited = unvisited;
-    new_queue->queue_next = front;
-    if( front)  front->queue_next = new_queue;
-    front = new_queue;
+    new_queue->queue_next = top;
+    if( top != NULL)  new_queue->queue_next = top;
+    top = new_queue;
     return;
 }
 int pop(_SuccessStepLog** succ){
-    if( !front)      return -1;
-    {update_car(true,front->car);       //show the process
+    if( !top)      return -1;
+    {update_car(true,top->car);       //show the process
     show();
-    update_car(false,front->car);
-    _Unvisited* ddddd = front->unvisited;
+    update_car(false,top->car);
     }
-    if( front->unvisited == NULL){
-        ( *succ)->fuel_consumption = front->fuel_consumption;
-        ( *succ)->num_of_step = front->num_of_step;
-        ( *succ)->head = front->step_log;
+    
+    if( top->unvisited == NULL){
+        ( *succ)->fuel_consumption = top->fuel_consumption;
+        ( *succ)->num_of_step = top->num_of_step;
+        ( *succ)->head = top->step_log;
         return 1;
     }
     bool another_t = false;
-    int temp_t = -1;     //to save the t that same with front->car;
-    _Vehicle* curr_car = front->car;
-    int new_num_of_step = front->num_of_step + 1;
-    int fuel_consumption = front->fuel_consumption;
+    
+    // printf("pop(%d,%d)\tface:%d\n",top->car->driver->x
+    //     ,top->car->driver->y,top->car->face);
+
+    // _StepLog* cucucu = top->step_log;
+    // while( cucucu){
+    //     printf("\tLog:(%d,%d)\tface:%d\n",cucucu->car->driver->x,
+    //         cucucu->car->driver->y,cucucu->car->face);
+    //     cucucu = cucucu->last;
+    // }
+    // system("Pause");
+
+    int temp_t = -1;     //to save the t that same with top->car;
+    _Vehicle* curr_car = top->car;
+    int new_num_of_step = top->num_of_step + 1;
+    int fuel_consumption = top->fuel_consumption;
     int new_fuel_consumption;
-    _Unvisited* unvisited = front->unvisited;
-    _StepLog* step_log = front->step_log;
-    _Queue* To_free = front;
-    front = front->queue_next;
-    free( To_free);
+    _Unvisited* unvisited = top->unvisited;
+    _StepLog* step_log = top->step_log;
+    _Queue* To_free = top;
+    top = top->queue_next;
+    //free( To_free);
+    if( triversal(step_log) > 4){      //if the vertex had been visited over 4 times,
+        // printf("dfdf\n");
+        // system("Pause");                //just pop and that go;
+        recursion_free(unvisited);      
+        return 0;
+    }
     for(int t = 5; t >= 0 ; t --){
         _Vehicle* new_car = (_Vehicle*)malloc(sizeof(_Vehicle));
         if( !drive(t,curr_car,new_car)){        //if it can't go;
@@ -376,6 +407,9 @@ int pop(_SuccessStepLog** succ){
         }   
         push( new_car, new_step_log, new_num_of_step,
                  new_fuel_consumption, new_unvisited);
+        // printf("push(%d,%d)\tface:%d\n",top->car->driver->x
+        //     ,top->car->driver->y,top->car->face);
+        //system("Pause");
         another_t = true;
         }
     if(temp_t >= 0 && !another_t){        //when a die path only can back;
@@ -391,9 +425,57 @@ int pop(_SuccessStepLog** succ){
             else      new_fuel_consumption = fuel_consumption + 1;
             push( new_car, new_step_log, new_num_of_step,
                  new_fuel_consumption, new_unvisited);
+            // printf("push(%d,%d)\tface:%d\n",top->car->driver->x
+            //     ,top->car->driver->y,top->car->face);
+            //system("Pause");
         }
+    //system("Pause");
     recursion_free(unvisited);
     return 0;
+}
+int triversal(_StepLog* step_log){
+    int vertex_time[Y_width][X_width];
+    for( int i = 0; i < X_width; i ++){
+        for( int j = 0; j < Y_width; j ++){
+            vertex_time[j][i] = 0;
+        }
+    }
+    _StepLog* curr = step_log;
+    while( curr != NULL){
+        int X,Y;
+            X = curr->car->driver->x;
+            Y = curr->car->driver->y;
+        for( int round = 0; round < 6; round ++){
+            switch( round){
+            case 0:
+                vertex_time[Y][X] ++;
+                break;
+            case 1: ;
+            case 2: ;
+                car_offset(&X,&Y,curr->car->face,2);
+                vertex_time[Y][X] ++;
+                break;
+            case 3:
+                car_offset(&X,&Y,curr->car->face,1);
+                vertex_time[Y][X] ++;
+                break;
+            case 4: ;
+            case 5: ;
+                car_offset(&X,&Y,curr->car->face,0);
+                vertex_time[Y][X] ++;
+                break;
+            }
+        }
+        curr = curr->last;
+    }
+    int most = 0;
+    for( int i = 0; i < X_width; i ++){
+        for( int j = 0; j < Y_width; j ++){
+            if( vertex_time[j][i] > most)
+                most = vertex_time[j][i];
+        }
+    }
+    return most;
 }
 void delete_unv(_Vehicle* car,_Unvisited** ptr_unv,int t){
     _Unvisited* unv = *ptr_unv;
@@ -453,112 +535,48 @@ void recursion_free(_Unvisited* To_free){
     free(To_free);
     return;
 }
+
 bool forward(int* car_face,int* new_x,int* new_y){
     int new_x_prime = *new_x;
     int new_y_prime = *new_y;
-        int X1,X2,Y1,Y2;
-        X1 = new_x_prime;
-        Y1 = new_y_prime;
     if( !check_drive(false,*car_face,&new_x_prime,&new_y_prime,0,0) )       return false;
     if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,0,1) )       return false;
-        X2 = new_x_prime;
-        Y2 = new_y_prime;
-        car_offset(&X1,&Y1,*car_face,0);
-        if( !vertex[Y1][X1]->visit_time)        return false;
-        car_offset(&X2,&Y2,*car_face,0);
-        if( !vertex[Y2][X2]->visit_time)        return false;
-        vertex[Y1][X1]->visit_time --;
-        vertex[Y2][X2]->visit_time --;
     car_offset(new_x,new_y,*car_face,0);
     return true;
 }
 bool backward(int* car_face,int* new_x,int* new_y){
     int new_x_prime = *new_x;
     int new_y_prime = *new_y;
-        int X1,X2,Y1,Y2;
     check_drive(true,*car_face,&new_x_prime,&new_y_prime,2,2);
     if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,2,2) )       return false;
-        X1 = new_x_prime;
-        Y1 = new_y_prime;
     if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,2,1) )       return false;
-        X2 = new_x_prime;
-        Y2 = new_y_prime;
-        car_offset(&X1,&Y1,*car_face,2);
-        if( !vertex[Y1][X1]->visit_time)        return false;
-        car_offset(&X2,&Y2,*car_face,2);
-        if( !vertex[Y2][X2]->visit_time)        return false;
-        vertex[Y1][X1]->visit_time --;
-        vertex[Y2][X2]->visit_time --;
     car_offset(new_x,new_y,*car_face,2);
     return true;
 }
 bool rightshift(int* car_face,int* new_x,int* new_y){
     int new_x_prime = *new_x;
     int new_y_prime = *new_y;
-        int X1,X2,Y1,Y2,X3,Y3;
     if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,1,1) )       return false;
-        X1 = new_x_prime;
-        Y1 = new_y_prime;
     if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,1,2) )       return false;
-        X2 = new_x_prime;
-        Y2 = new_y_prime;
     if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,1,2) )       return false;
-        X3 = new_x_prime;
-        Y3 = new_y_prime;
-            car_offset(&X1,&Y1,*car_face,1);
-            if( !vertex[Y1][X1]->visit_time)        return false;
-            car_offset(&X2,&Y2,*car_face,1);
-            if( !vertex[Y2][X2]->visit_time)        return false;
-            car_offset(&X3,&Y3,*car_face,1);
-            if( !vertex[Y3][X3]->visit_time)        return false;
-        vertex[Y1][X1]->visit_time --;
-        vertex[Y2][X2]->visit_time --;
-        vertex[Y3][X3]->visit_time --;
     car_offset(new_x,new_y,*car_face,1);
     return true;
 }
 bool leftshift(int* car_face,int* new_x,int* new_y){
     int new_x_prime = *new_x;
     int new_y_prime = *new_y;
-        int X1,X2,Y1,Y2,X3,Y3;
     if( !check_drive(false,*car_face,&new_x_prime,&new_y_prime,3,0) )       return false;
-        X1 = new_x_prime;
-        Y1 = new_y_prime;
     if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,3,2) )       return false;
-        X2 = new_x_prime;
-        Y2 = new_y_prime;
     if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,3,2) )       return false;
-        X3 = new_x_prime;
-        Y3 = new_y_prime;
-            car_offset(&X1,&Y1,*car_face,3);
-            if( !vertex[Y1][X1]->visit_time)        return false;
-            car_offset(&X2,&Y2,*car_face,3);
-            if( !vertex[Y2][X2]->visit_time)        return false;
-            car_offset(&X3,&Y3,*car_face,3);
-            if( !vertex[Y3][X3]->visit_time)        return false;
-        vertex[Y1][X1]->visit_time --;
-        vertex[Y2][X2]->visit_time --;
-        vertex[Y3][X3]->visit_time --;
     car_offset(new_x,new_y,*car_face,3);
     return true;
 }
 bool turnright(int* car_face,int* new_x,int* new_y){
     int new_x_prime = *new_x;
     int new_y_prime = *new_y;
-        int X1,X2,Y1,Y2;
     if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,1,1) )       return false;
-        X1 = new_x_prime;
-        Y1 = new_y_prime;
     if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,1,2) )       return false;
-        X2 = new_x_prime;
-        Y2 = new_y_prime;
     if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,1,2) )       return false;
-            car_offset(&X1,&Y1,*car_face,1);
-            if( !vertex[Y1][X1]->visit_time)        return false;
-            car_offset(&X2,&Y2,*car_face,1);
-            if( !vertex[Y2][X2]->visit_time)        return false;
-        vertex[Y1][X1]->visit_time --;
-        vertex[Y2][X2]->visit_time --;
     car_offset(new_x,new_y,*car_face,1);
     car_offset(new_x,new_y,*car_face,1);
     *car_face += 1;
@@ -568,26 +586,16 @@ bool turnright(int* car_face,int* new_x,int* new_y){
 bool turnleft(int* car_face,int* new_x,int* new_y){
     int new_x_prime = *new_x;
     int new_y_prime = *new_y;
-        int X1,X2,Y1,Y2;
     if( !check_drive(false,*car_face,&new_x_prime,&new_y_prime,3,0) )       return false;
-        X1 = new_x_prime;
-        Y1 = new_y_prime;
     if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,3,2) )       return false;
-        X2 = new_x_prime;
-        Y2 = new_y_prime;
     if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,3,2) )       return false;
-            car_offset(&X1,&Y1,*car_face,3);
-            if( !vertex[Y1][X1]->visit_time)        return false;
-            car_offset(&X2,&Y2,*car_face,3);
-            if( !vertex[Y2][X2]->visit_time)        return false;
-        vertex[Y1][X1]->visit_time --;
-        vertex[Y2][X2]->visit_time --;
     car_offset(new_x,new_y,*car_face,3);
     car_offset(new_x,new_y,*car_face,2);
     *car_face += 3;
     *car_face %= 4;
     return true;
 }
+
 bool check_drive(bool offset_or_not,int car_face,int* new_x,int* new_y,int dir,int ofs){
     int direction = ( car_face + dir ) % 4;
     if( offset_or_not)     car_offset(new_x,new_y,car_face,ofs);
