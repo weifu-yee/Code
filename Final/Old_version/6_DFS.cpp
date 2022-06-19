@@ -7,7 +7,8 @@
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~FILE~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 FILE* file(){
-    FILE* inf = fopen("D:/Code/Final/INPUT file/input3.txt","r");
+    FILE* inf = fopen("D:/Code/Final/INPUT file/input3.txt","r");    
+    if( !inf)       printf("File not found!\n"),  exit(1);
     return inf;
 }
 
@@ -109,7 +110,7 @@ bool drive(int t,_Vehicle* curr_car,_Vehicle* new_car){
 int main(){
     _Vehicle* start = Adjacency_List();
     make_connect_loop();
-    if( run(start) )
+    if( !run(start) )
         printf("\nbest_step:%d",best_step);
     return 0;
 }
@@ -272,13 +273,14 @@ int run(_Vehicle* start){
     // }
 
     if(_pop == -1){
-        printf("\n\nrurururu~~~\n");
+        printf("\nthe stack is empty~~");
         return -1;
     }
     if( _pop == 1){
         recursion_show(succ->head);
         printf("\nfuel_consumption:%d",succ->fuel_consumption);
         printf((mission_spot_or_not)?"\nmission~":"\nall~");
+        return 0;
     }
     return 1;
 }

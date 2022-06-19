@@ -7,7 +7,8 @@
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~FILE~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 FILE* file(){
-    FILE* inf = fopen("D:/Code/Final/INPUT file/input3.txt","r");
+    FILE* inf = fopen("D:/Code/Final/INPUT file/input1.txt","r");
+    if( !inf)       printf("File not found!\n"),  exit(1);
     return inf;
 }
 
@@ -64,6 +65,7 @@ int axis_addition(int axis, int initial, int face);
 void show();        //print the graph
 void update_car(bool curr_last,_Vehicle* car);
 int run(_Vehicle* start);       //run from the start;
+int run1(_Vehicle* start);
 _Unvisited* build_unvisited();
 _Unvisited* copy_unv(_Unvisited* curr);
 void recursion_copy(_Unvisited* curr,_Unvisited** new_head_of_unv);
@@ -75,16 +77,22 @@ int triversal(_StepLog* step_log);
 void delete_unv(_Vehicle* car,_Unvisited** ptr_unv,int t);
 _Unvisited* triversal_delete(_Vertex* vertex,_Unvisited* unv);
 void recursion_free(_Unvisited* To_free);
+
 bool forward(int* car_face,int* new_x,int* new_y);
 bool backward(int* car_face,int* new_x,int* new_y);
 bool rightshift(int* car_face,int* new_x,int* new_y);
 bool leftshift(int* car_face,int* new_x,int* new_y);
 bool turnright(int* car_face,int* new_x,int* new_y);
 bool turnleft(int* car_face,int* new_x,int* new_y);
+
 bool check_drive(bool offset_or_not,int car_face,int* new_x,int* new_y,int dir,int ofs);
 void car_offset(int* new_x,int* new_y,int car_face,int ofs);
 void Verify_drive(int t,int X,int Y,int face);
 void recursion_show(_StepLog* curr);
+void build_Q_set(_Queue** Q_set, _Queue** S_set, _Vehicle* start);
+bool Q_set_all_NULL(_Queue** Q_set);
+void throw_S(_Queue** Q_set, _Queue** S_set, int _i, int _j);
+void catch_Q( _Queue** Q_set, int* _i, int* _j);
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~Function wrappers~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 bool drive(int t,_Vehicle* curr_car,_Vehicle* new_car){
@@ -109,7 +117,7 @@ bool drive(int t,_Vehicle* curr_car,_Vehicle* new_car){
 int main(){
     _Vehicle* start = Adjacency_List();
     make_connect_loop();
-    if( run(start) )
+    if( run1(start) )
         printf("\nbest_step:%d",best_step);
     return 0;
 }
@@ -209,6 +217,7 @@ void update_car(bool curr_last,_Vehicle* car){
     bool _3 = false;
     if(vertex[i][j]->value == '3')      _3 = true;
     vertex[i][j]->value = (curr_last)?(_3)?'6':'5' : (_4)?'3':'1';
+
     for(int l = 0;l < 2;l ++){
         car_offset(&j,&i,k,2);
         _4 = false;
@@ -217,12 +226,14 @@ void update_car(bool curr_last,_Vehicle* car){
         if(vertex[i][j]->value == '3')      _3 = true;
         vertex[i][j]->value = (curr_last)?(_3)?'4':'2' : (_4)?'3':'1';
     }
+
     car_offset(&j,&i,k,1);
     _4 = false;
     if(vertex[i][j]->value == '4' || vertex[i][j]->value == '6')      _4 = true;
     _3 = false;
     if(vertex[i][j]->value == '3')      _3 = true;
     vertex[i][j]->value = (curr_last)?(_3)?'4':'2' : (_4)?'3':'1';
+
     for(int l = 0;l < 2;l ++){
         car_offset(&j,&i,k,0);
         _4 = false;
@@ -231,8 +242,10 @@ void update_car(bool curr_last,_Vehicle* car){
         if(vertex[i][j]->value == '3')      _3 = true;
         vertex[i][j]->value = (curr_last)?(_3)?'4':'2' : (_4)?'3':'1';
     }
+
     return;
 }
+
 int run(_Vehicle* start){
     _Unvisited* start_unvisited = build_unvisited();
     _StepLog* start_step_log = (_StepLog*)malloc(sizeof(_StepLog));
@@ -270,9 +283,8 @@ int run(_Vehicle* start){
     //         system("Pause");
     //     }
     // }
-
     if(_pop == -1){
-        printf("\n\nrurururu~~~\n");
+        printf("\nthe stack is empty~~");
         return -1;
     }
     if( _pop == 1){
@@ -351,10 +363,8 @@ int pop(_SuccessStepLog** succ){
         return 1;
     }
     bool another_t = false;
-    
     // printf("pop(%d,%d)\tface:%d\n",top->car->driver->x
     //     ,top->car->driver->y,top->car->face);
-
     // _StepLog* cucucu = top->step_log;
     // while( cucucu){
     //     printf("\tLog:(%d,%d)\tface:%d\n",cucucu->car->driver->x,
@@ -362,7 +372,6 @@ int pop(_SuccessStepLog** succ){
     //     cucucu = cucucu->last;
     // }
     // system("Pause");
-
     int temp_t = -1;     //to save the t that same with top->car;
     _Vehicle* curr_car = top->car;
     int new_num_of_step = top->num_of_step + 1;
@@ -638,5 +647,135 @@ void recursion_show(_StepLog* curr){
     show();
     Sleep(300);
     update_car(false,curr->car);
+    return;
+}
+
+int run1(_Vehicle* start){
+    _Queue* Q_set[Y_width][X_width];
+    _Queue* S_set[Y_width][X_width];
+    build_Q_set(&Q_set[0][0], &S_set[0][0], start);
+    for(int i = 0; i < Y_width; i ++){
+        for( int j = 0; j < X_width; j ++){
+            if(Q_set[i][j] == NULL){
+                printf(" N ");
+                continue;
+            }
+            printf("%2d ",Q_set[i][j]->fuel_consumption);
+        }
+        printf("\n");
+    }
+    printf("\n~~~S~\n");
+    for(int i = 0; i < Y_width; i ++){
+        for( int j = 0; j < X_width; j ++){
+            if(S_set[i][j] == NULL){
+                printf(" N ");
+                continue;
+            }
+            printf("%2d ",S_set[i][j]->fuel_consumption);
+        }
+        printf("\n");
+    }
+    
+    while( Q_set_all_NULL( &Q_set[0][0])){
+        int _i = -1, _j = -1;
+        catch_Q( &Q_set[0][0], &_i, &_j);
+        if( _i == -1 || _j == -1)       break;
+        throw_S( &Q_set[0][0], &S_set[0][0], _i, _j);
+    }
+    
+    printf("\n~~~~~\n");
+    for(int i = 0; i < Y_width; i ++){
+        for( int j = 0; j < X_width; j ++){
+            if(Q_set[i][j] == NULL){
+                printf(" N ");
+                continue;
+            }
+            printf("%2d ",Q_set[i][j]->fuel_consumption);
+        }
+        printf("\n");
+    }
+    printf("\n~~~S~\n");
+    for(int i = 0; i < Y_width; i ++){
+        for( int j = 0; j < X_width; j ++){
+            if(S_set[i][j] == NULL){
+                printf(" N ");
+                continue;
+            }
+            printf("%2d ",S_set[i][j]->fuel_consumption);
+        }
+        printf("\n");
+    }
+    
+    // _Unvisited* start_unvisited = build_unvisited();
+    // _StepLog* start_step_log = (_StepLog*)malloc(sizeof(_StepLog));
+    // start_step_log->car = start;
+    // start_step_log->last = NULL;
+    // push(start,start_step_log,0,0,start_unvisited);
+    // _SuccessStepLog* succ = (_SuccessStepLog*)malloc(sizeof(_SuccessStepLog));
+    // int _pop = 0;
+    // //while( _pop == 0){
+    // //}
+    // return 0;
+    return 0;
+}
+void build_Q_set(_Queue** Q_set, _Queue** S_set, _Vehicle* start){
+    for(int i = 0; i < Y_width; ++i){
+        for(int j = 0; j < X_width; ++j){
+            if(vertex[i][j]->value == '0'){
+                (*(Q_set + X_width*i + j )) = NULL;
+                (*(S_set + X_width*i + j )) = NULL;
+                continue;
+            }
+            _Queue* new_queue = (_Queue*)malloc(sizeof(_Queue));
+            new_queue->car = NULL;     //initialization
+            new_queue->fuel_consumption = -1;
+            new_queue->num_of_step = 0;
+            new_queue->step_log = NULL;
+            new_queue->unvisited = NULL;
+            (*(Q_set + X_width*i + j )) = new_queue;
+        }
+    }
+    {    //update start
+        int i = start->driver->y;       
+        int j = start->driver->x;
+        (*(Q_set + X_width*i + j ))->fuel_consumption = 0;
+        for(int k = 0; k < 2; k ++){
+            car_offset(&j,&i,0,2);
+            (*(Q_set + X_width*i + j ))->fuel_consumption = 0;
+        }
+        car_offset(&j,&i,0,1);
+        (*(Q_set + X_width*i + j ))->fuel_consumption = 0;
+        for(int k = 0; k < 2; k ++){
+            car_offset(&j,&i,0,0);
+            (*(Q_set + X_width*i + j ))->fuel_consumption = 0;
+        }
+    }
+    return;
+}
+bool Q_set_all_NULL(_Queue** Q_set){
+    for(int i = 0; i < Y_width; ++i){
+        for(int j = 0; j < X_width; ++j){
+            if( !(*(Q_set + X_width*i + j )) )      continue;
+            return true;
+        }
+    }
+    return false;
+}
+void throw_S(_Queue** Q_set, _Queue** S_set, int _i, int _j){
+    *(S_set + _i*X_width + _j) = *(Q_set + _i*X_width + _j);
+    *(Q_set + _i*X_width + _j) = NULL;
+}
+void catch_Q( _Queue** Q_set, int* _i, int* _j){
+    int fewest_FuCons = 0;
+    for(int i = 0; i < Y_width; ++i){
+        for(int j = 0; j < X_width; ++j){
+            if( !(*(Q_set + X_width*i + j )) )      continue;
+            if( (*(Q_set + X_width*i + j ))->fuel_consumption == -1)    continue;
+            if( fewest_FuCons >= (*(Q_set + X_width*i + j ))->fuel_consumption){
+                fewest_FuCons = (*(Q_set + X_width*i + j ))->fuel_consumption;
+                *_i = i, *_j = j;
+            }
+        }
+    }
     return;
 }
