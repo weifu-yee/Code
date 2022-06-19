@@ -95,8 +95,9 @@ void throw_S(_Queue** Q_set, _Queue** S_set, int _i, int _j);
 void catch_Q( _Queue** Q_set, int* _i, int* _j);
 void verify_connect(_Queue** Q_set, int _i, int _j);
 void puts_Q_S(_Queue** Q_set);
-void update_Q(_Queue** Q_set, _Vehicle* car, _Connect* tmp);
+void update_Q(_Queue** Q_set, _Queue* curr, _Connect* tmp);
 bool if_drive_can_go(_Vertex* tmp, _Vehicle* car, _Vehicle** new_car,int* f);
+void Q_update(_Queue** Q_set, _Queue* curr);
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~Function wrappers~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 bool drive(int t,_Vehicle* curr_car,_Vehicle* new_car){
@@ -210,7 +211,7 @@ void show(){
         }
         printf("\n");
     }
-    //Sleep(300);
+    //Sleep(10);
 }
 void update_car(bool curr_last,_Vehicle* car){
     int i = car->driver->y;
@@ -640,16 +641,16 @@ void recursion_show(_StepLog* curr){
         recursion_show(curr->last);       //call self;
         update_car(true,curr->car);
         show();
-        Sleep(300);
+        Sleep(10);
         update_car(false,curr->car);
         printf("Start!~~\n");
-        system("Pause");
+        Sleep(100);
         return;
     }
     recursion_show(curr->last);       //call self;
     update_car(true,curr->car);
     show();
-    Sleep(300);
+    Sleep(10);
     update_car(false,curr->car);
     return;
 }
@@ -662,6 +663,8 @@ int run1(_Vehicle* start){
     puts_Q_S(&Q_set[0][0]);
     printf("\n~~~S~\n");
     puts_Q_S(&S_set[0][0]);
+    Sleep(100);
+    system("CLS");
     
     while( Q_set_all_NULL( &Q_set[0][0])){
         int _i = -1, _j = -1;
@@ -669,12 +672,8 @@ int run1(_Vehicle* start){
         if( _i == -1 || _j == -1)       break;
         throw_S( &Q_set[0][0], &S_set[0][0], _i, _j);
     }
-    
-    printf("\n~~~~~\n");
-    puts_Q_S(&Q_set[0][0]);
-    printf("\n~~~S~\n");
-    puts_Q_S(&S_set[0][0]);
-
+    printf("\nQ~\n");    puts_Q_S(&Q_set[0][0]);    printf("S~\n");    puts_Q_S(&S_set[0][0]);
+    printf("\nfin~");
     // _Unvisited* start_unvisited = build_unvisited();
     // _StepLog* start_step_log = (_StepLog*)malloc(sizeof(_StepLog));
     // start_step_log->car = start;
@@ -728,15 +727,15 @@ void build_Q_set(_Queue** Q_set, _Queue** S_set, _Vehicle* start){
         (*(Q_set + X_width*i + j ))->fuel_consumption = 0;
         (*(Q_set + X_width*i + j ))->step_log = start_step_log;
         for(int k = 0; k < 2; k ++){
-            car_offset(&j,&i,0,2);
+            car_offset(&j,&i,start->face,2);
             (*(Q_set + X_width*i + j ))->fuel_consumption = 0;
             (*(Q_set + X_width*i + j ))->step_log = start_step_log;
         }
-        car_offset(&j,&i,0,1);
+        car_offset(&j,&i,start->face,1);
         (*(Q_set + X_width*i + j ))->fuel_consumption = 0;
         (*(Q_set + X_width*i + j ))->step_log = start_step_log;
         for(int k = 0; k < 2; k ++){
-            car_offset(&j,&i,0,0);
+            car_offset(&j,&i,start->face,0);
             (*(Q_set + X_width*i + j ))->fuel_consumption = 0;
             (*(Q_set + X_width*i + j ))->step_log = start_step_log;
         }
@@ -753,13 +752,20 @@ bool Q_set_all_NULL(_Queue** Q_set){
     return false;
 }
 void catch_Q( _Queue** Q_set, int* _i, int* _j){
-    int fewest_FuCons = 0;
+    int oil = 0;
+    bool one = true;
     for(int i = 0; i < Y_width; ++i){
         for(int j = 0; j < X_width; ++j){
-            if( !(*(Q_set + X_width*i + j )) )      continue;
-            if( (*(Q_set + X_width*i + j ))->fuel_consumption == -1)    continue;
-            if( fewest_FuCons >= (*(Q_set + X_width*i + j ))->fuel_consumption){
-                fewest_FuCons = (*(Q_set + X_width*i + j ))->fuel_consumption;
+            if( !(*(Q_set + X_width*i + j )) )     //NULL 
+                continue;
+            if( (*(Q_set + X_width*i + j ))->fuel_consumption == -1)    
+                continue;
+            if(one){
+                oil = (*(Q_set + X_width*i + j ))->fuel_consumption;
+                *_i = i, *_j = j;
+                one = false;
+            }else if( (*(Q_set + X_width*i + j ))->fuel_consumption < oil){
+                oil = (*(Q_set + X_width*i + j ))->fuel_consumption;
                 *_i = i, *_j = j;
             }
         }
@@ -768,71 +774,143 @@ void catch_Q( _Queue** Q_set, int* _i, int* _j){
 }
 void throw_S(_Queue** Q_set, _Queue** S_set, int _i, int _j){
     _Queue* curr = *(Q_set + _i*X_width + _j);
-    verify_connect(Q_set, _i, _j);
+    //verify_connect(Q_set, _i, _j);
+    Q_update( Q_set, curr);
     *(S_set + _i*X_width + _j) = curr ;
     *(Q_set + _i*X_width + _j) = NULL;
-    puts_Q_S(Q_set);
-    system("Pause");
+    printf("\nQ~\n");    puts_Q_S(Q_set);    printf("S~\n");    puts_Q_S(S_set);
+    Sleep(10); system("CLS");
     return;
 }
-void verify_connect(_Queue** Q_set, int _i, int _j){
-    _Connect* tmp = vertex[_i][_j]->connect;
-    if(! (*(Q_set + _i*X_width + _j))){
-        printf("the point is NULL\n");
-        return;
-    }
-    _Vehicle* car = (*(Q_set + _i*X_width + _j))->step_log->car;
-    while( tmp){
-        if( *(Q_set + tmp->self->y*X_width + tmp->self->x)){
-            update_Q(Q_set, car, tmp);
-            printf("update_Q:%d\n", tmp->face);
-        }
-        tmp = tmp->next;
-    }
-    return;
-}
-void update_Q(_Queue** Q_set, _Vehicle* car, _Connect* tmp){
-    int i = tmp->self->y;
-    int j = tmp->self->x;
-    int f = 1;
-    //_Queue* curr = (*(Q_set + i*X_width + j));
-    _Vehicle* new_car = NULL;
-    if( if_drive_can_go(tmp->self,car,&new_car,&f) ){
-        _StepLog* new_step_log = (_StepLog*)malloc(sizeof(_StepLog));
-        new_step_log->car = new_car;
-        new_step_log->last = (*Q_set)->step_log;
-        (*(Q_set + i*X_width + j))->fuel_consumption = (*Q_set)->fuel_consumption + f;
-        (*(Q_set + i*X_width + j))->num_of_step = (*Q_set)->num_of_step + 1;
-        (*(Q_set + i*X_width + j))->step_log = new_step_log;
-    }
-    return;
+void Q_update(_Queue** Q_set, _Queue* curr){
+    _Vehicle* car = curr->step_log->car;
+    int f, i_prime, j_prime;
+    _Vertex* tmp = NULL;
 
-}
-bool if_drive_can_go(_Vertex* tmp, _Vehicle* car, _Vehicle** new_car,int* f){
-    _Vertex* temp;
-    int i_pri, j_pri;
-    for( int k = 0; k < 6; ++k){
-        if ( !drive(k,car,*new_car) )        continue;
-        temp = (*new_car)->driver;
-        i_pri = temp->y;
-        j_pri = temp->x;
-        for( int l = 0; l < 6; l ++){
-            if( temp == tmp){
-                *f = (k<2)?1:(k<4)?2:5;
-                return true;
-            }
-            if( !l)     continue;
-            else if( l < 3){
-                car_offset(&j_pri,&i_pri,car->face,2);
-            }else if( l == 3){
-                car_offset(&j_pri,&i_pri,car->face,1);
-            }else{
-                car_offset(&j_pri,&i_pri,car->face,0);
-            }
-            temp = vertex[i_pri][j_pri];
+    for( int k = 0; k < 6; ++ k){
+        _Vehicle* new_car = (_Vehicle*)malloc(sizeof(_Vehicle));
+        if( !drive(k, car, new_car) ){
+            free(new_car);
+            continue;
+        }
+        f = (k<2)?1:(k<4)?2:5;      f += curr->fuel_consumption;
+        tmp = new_car->driver;
+        i_prime = tmp->y;        j_prime = tmp->x;
+        for( int l = 0; l < 6; l ++){       //see every vertex's fuel;
+            if( l == 0){
+            }else if( l < 3){car_offset(&j_prime,&i_prime,new_car->face,2);
+            }else if( l == 3){car_offset(&j_prime,&i_prime,new_car->face,1);
+            }else{car_offset(&j_prime,&i_prime,new_car->face,0);}
+            if(!(*(Q_set + X_width*i_prime + j_prime )))        continue;
+            if( (*(Q_set + X_width*i_prime + j_prime ))->fuel_consumption != -1
+               && f >= (*(Q_set + X_width*i_prime + j_prime ))->fuel_consumption)
+                continue;
+            //if short than ago;
+            _StepLog* new_SL = (_StepLog*)malloc(sizeof(_StepLog));
+            new_SL->car = new_car;
+            new_SL->last = curr->step_log;
+            (*(Q_set + X_width*i_prime + j_prime ))->fuel_consumption = f;
+            (*(Q_set + X_width*i_prime + j_prime ))->step_log = new_SL;
+            (*(Q_set + X_width*i_prime + j_prime ))->num_of_step = curr->num_of_step ++;
         }
     }
-    return false;
+    return;
 }
+
+
+
+
+// void verify_connect(_Queue** Q_set, int _i, int _j){
+//     _Connect* tmp = vertex[_i][_j]->connect;
+//     _Queue* curr = *(Q_set + _i*X_width + _j);
+//     while( tmp){
+//         if( *(Q_set + tmp->self->y*X_width + tmp->self->x)){
+//             update_Q(Q_set, curr, tmp);
+//             printf(" update_Q:(%d,%d)", tmp->self->x + 1, tmp->self->y + 1);
+//         }
+//         tmp = tmp->next;
+//     }
+//     return;
+// }
+// // void verify_connect(_Queue** Q_set, int _i, int _j){
+// //     _Connect* tmp = vertex[_i][_j]->connect;
+// //     _Queue* curr = *(Q_set + _i*X_width + _j);
+// //     while( tmp){
+// //         if( *(Q_set + tmp->self->y*X_width + tmp->self->x)){
+// //             update_Q(Q_set, curr, tmp);
+// //             printf(" update_Q:(%d,%d)", tmp->self->x + 1, tmp->self->y + 1);
+// //         }
+// //         tmp = tmp->next;
+// //     }
+// //     return;
+// // }
+// void update_Q(_Queue** Q_set, _Queue* curr, _Connect* tmp){
+//     int i = tmp->self->y;
+//     int j = tmp->self->x;
+//     int f = 1;
+//     //_Queue* curr = (*(Q_set + i*X_width + j));
+//     _Vehicle* car = curr->step_log->car;
+//     _Vehicle* new_car = (_Vehicle*)malloc(sizeof(_Vehicle));
+//     if( !if_drive_can_go(tmp->self,car,&new_car,&f) ){
+//         free(new_car);
+//         return;
+//     }else if((*(Q_set + tmp->self->y*X_width + tmp->self->x))->fuel_consumption != -1
+//              && curr->fuel_consumption + f >=
+//              (*(Q_set + tmp->self->y*X_width + tmp->self->x))->fuel_consumption )    return;
+//     _StepLog* new_step_log = (_StepLog*)malloc(sizeof(_StepLog));
+//     new_step_log->car = new_car;
+//     new_step_log->last = curr->step_log;
+//     (*(Q_set + i*X_width + j))->fuel_consumption = curr->fuel_consumption + f;
+//     (*(Q_set + i*X_width + j))->num_of_step = curr->num_of_step + 1;
+//     (*(Q_set + i*X_width + j))->step_log = new_step_log;
+//     return;
+// }
+// // void update_Q(_Queue** Q_set, _Queue* curr, _Connect* tmp){
+// //     int i = tmp->self->y;
+// //     int j = tmp->self->x;
+// //     int f = 1;
+// //     //_Queue* curr = (*(Q_set + i*X_width + j));
+// //     _Vehicle* car = curr->step_log->car;
+// //     _Vehicle* new_car = (_Vehicle*)malloc(sizeof(_Vehicle));
+// //     if( !if_drive_can_go(tmp->self,car,&new_car,&f) ){
+// //         free(new_car);
+// //         return;
+// //     }else if((*(Q_set + tmp->self->y*X_width + tmp->self->x))->fuel_consumption != -1
+// //              && curr->fuel_consumption + f >=
+// //              (*(Q_set + tmp->self->y*X_width + tmp->self->x))->fuel_consumption )    return;
+// //     _StepLog* new_step_log = (_StepLog*)malloc(sizeof(_StepLog));
+// //     new_step_log->car = new_car;
+// //     new_step_log->last = curr->step_log;
+// //     (*(Q_set + i*X_width + j))->fuel_consumption = curr->fuel_consumption + f;
+// //     (*(Q_set + i*X_width + j))->num_of_step = curr->num_of_step + 1;
+// //     (*(Q_set + i*X_width + j))->step_log = new_step_log;
+// //     return;
+// // }
+// bool if_drive_can_go(_Vertex* tmp, _Vehicle* car, _Vehicle** new_car,int* f){
+//     _Vertex* temp;
+//     int i_pri, j_pri;
+//     for( int k = 0; k < 6; ++k){
+//         if ( !drive(k,car,*new_car) )        continue;
+//         temp = (*new_car)->driver;
+//         i_pri = temp->y;
+//         j_pri = temp->x;
+//         for( int l = 0; l < 7; l ++){       //check 6 vertecies if cover tmp
+//             if( vertex[i_pri][j_pri] == tmp){
+//                 *f = (k<2)?1:(k<4)?2:5;
+//                 return true;
+//             }
+//             if( !l)     continue;
+//             else if( l < 3){
+//                 car_offset(&j_pri,&i_pri,car->face,2);
+//             }else if( l == 3){
+//                 car_offset(&j_pri,&i_pri,car->face,1);
+//             }else if( l < 6){
+//                 car_offset(&j_pri,&i_pri,car->face,0);
+//             }
+//             temp = vertex[i_pri][j_pri];
+//         }
+//     }
+//     return false;
+// }
 
 
