@@ -7,7 +7,7 @@
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~FILE~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 FILE* file(){
-    FILE* inf = fopen("D:/Code/Final/INPUT file/input3.txt","r");    
+    FILE* inf = fopen("D:/Code/Final/INPUT file/input6.txt","r");    
     if( !inf)       printf("File not found!\n"),  exit(1);
     return inf;
 }
@@ -196,6 +196,8 @@ void show(){
                 printf("@");
             else if(vertex[i][j]->value == '6')
                 printf("@");
+            else if(vertex[i][j]->value == '7')
+                printf(".");
         }
         printf("\n");
     }
@@ -209,28 +211,28 @@ void update_car(bool curr_last,_Vehicle* car){
     if(vertex[i][j]->value == '4' || vertex[i][j]->value == '6')      _4 = true;
     bool _3 = false;
     if(vertex[i][j]->value == '3')      _3 = true;
-    vertex[i][j]->value = (curr_last)?(_3)?'6':'5' : (_4)?'3':'1';
+    vertex[i][j]->value = (curr_last)?(_3)?'6':'5' : (_4)?'3':'7';
     for(int l = 0;l < 2;l ++){
         car_offset(&j,&i,k,2);
         _4 = false;
         if(vertex[i][j]->value == '4' || vertex[i][j]->value == '6')      _4 = true;
         _3 = false;
         if(vertex[i][j]->value == '3')      _3 = true;
-        vertex[i][j]->value = (curr_last)?(_3)?'4':'2' : (_4)?'3':'1';
+        vertex[i][j]->value = (curr_last)?(_3)?'4':'2' : (_4)?'3':'7';
     }
     car_offset(&j,&i,k,1);
     _4 = false;
     if(vertex[i][j]->value == '4' || vertex[i][j]->value == '6')      _4 = true;
     _3 = false;
     if(vertex[i][j]->value == '3')      _3 = true;
-    vertex[i][j]->value = (curr_last)?(_3)?'4':'2' : (_4)?'3':'1';
+    vertex[i][j]->value = (curr_last)?(_3)?'4':'2' : (_4)?'3':'7';
     for(int l = 0;l < 2;l ++){
         car_offset(&j,&i,k,0);
         _4 = false;
         if(vertex[i][j]->value == '4' || vertex[i][j]->value == '6')      _4 = true;
         _3 = false;
         if(vertex[i][j]->value == '3')      _3 = true;
-        vertex[i][j]->value = (curr_last)?(_3)?'4':'2' : (_4)?'3':'1';
+        vertex[i][j]->value = (curr_last)?(_3)?'4':'2' : (_4)?'3':'7';
     }
     return;
 }
@@ -341,10 +343,10 @@ void push(_Vehicle* car,_StepLog* step_log,int num_of_step,int fuel_consumption,
 }
 int pop(_SuccessStepLog** succ){
     if( !top)      return -1;
-    {update_car(true,top->car);       //show the process
-    show();
-    update_car(false,top->car);
-    }
+    // {update_car(true,top->car);       //show the process
+    // show();
+    // update_car(false,top->car);
+    // }
     
     if( top->unvisited == NULL){
         ( *succ)->fuel_consumption = top->fuel_consumption;
@@ -375,7 +377,7 @@ int pop(_SuccessStepLog** succ){
     _Queue* To_free = top;
     top = top->queue_next;
     //free( To_free);
-    if( triversal(step_log) > 4){      //if the vertex had been visited over 4 times,
+    if( triversal(step_log) > 7){      //if the vertex had been visited over 4 times,
         // printf("dfdf\n");
         // system("Pause");                //just pop and that go;
         recursion_free(unvisited);      
