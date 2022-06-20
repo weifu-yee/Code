@@ -7,7 +7,7 @@
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~FILE~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 FILE* file(){
-    FILE* inf = fopen("D:/Code/Final/INPUT file/input6.txt","r");
+    FILE* inf = fopen("D:/Code/Final/INPUT file/input1.txt","r");
     if( !inf)       printf("File not found!\n"),  exit(1);
     return inf;
 }
@@ -48,7 +48,6 @@ typedef struct _SuccessStepLog{
 _Vertex* vertex[50][50];    //the map's vertex which input;
 int X_width, Y_width;       //X,Y width
 bool mission_spot_or_not = false;
-//_Set* top = NULL;
 int best_step;
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~Function declaration~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
@@ -57,6 +56,11 @@ void make_connect(int i,int j);     //make junction
 void make_connect_loop();     //loop to make junction
 int axis_addition(int axis, int initial, int face);
 void show();        //print the graph
+bool check_drive(bool offset_or_not,int car_face,int* new_x,int* new_y,int dir,int ofs);
+void car_offset(int* new_x,int* new_y,int car_face,int ofs);
+void recursion_show(_Set** S_set, _StepLog* curr);
+void update_car(bool curr_last,_Vehicle* car);
+
 int run(_Vehicle* start);       //run from the start;
 
 bool forward(int* car_face,int* new_x,int* new_y);
@@ -65,11 +69,6 @@ bool rightshift(int* car_face,int* new_x,int* new_y);
 bool leftshift(int* car_face,int* new_x,int* new_y);
 bool turnright(int* car_face,int* new_x,int* new_y);
 bool turnleft(int* car_face,int* new_x,int* new_y);
-
-bool check_drive(bool offset_or_not,int car_face,int* new_x,int* new_y,int dir,int ofs);
-void car_offset(int* new_x,int* new_y,int car_face,int ofs);
-void recursion_show(_Set** S_set, _StepLog* curr);
-void update_car(bool curr_last,_Vehicle* car);
 
 void build_Q_set(_Set** Q_set, _Set** S_set, _Vehicle* start);
 bool Q_set_all_NULL(_Set** Q_set);
@@ -81,25 +80,6 @@ void Q_update(_Set** Q_set, _Set* curr);
 bool S_run(_Set** S_set);
 void recursionUpdate_S(_Set** S_set, _StepLog* curr);
 
-//~ ~ ~ ~ ~ ~ ~ ~ ~ ~Function wrappers~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
-bool drive(int t,_Vehicle* curr_car,_Vehicle* new_car){
-    bool (*drive[])(int* car_face,int* new_x,int* new_y) = {
-        forward,
-        backward,
-        rightshift,
-        leftshift,
-        turnright,
-        turnleft
-    };
-    int new_car_face = curr_car->face;
-    int new_x = curr_car->driver->x;
-    int new_y = curr_car->driver->y;
-    if( !(*drive[t])(&new_car_face,&new_x,&new_y) )       return false;  //if can't drive;
-    new_car->driver = vertex[new_y][new_x];
-    new_car->face = new_car_face;
-    return true;
-}
-
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~main~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 int main(){
     _Vehicle* start = Adjacency_List();
@@ -108,6 +88,31 @@ int main(){
     return 0;
 }
 
+//~ ~ ~ ~ ~ ~ ~ ~ ~ ~functions~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
+//run
+int run(_Vehicle* start){
+    _Set* Q_set[Y_width][X_width];
+    _Set* S_set[Y_width][X_width];
+    build_Q_set(&Q_set[0][0], &S_set[0][0], start);
+    puts_Q_S(&Q_set[0][0]);    printf("\n~~~S~\n");    puts_Q_S(&S_set[0][0]);    system("CLS");
+    int gotcha = 0;
+    while(Q_set_all_NULL( &Q_set[0][0])){
+        int _i = -1, _j = -1;
+        catch_Q( &Q_set[0][0], &_i, &_j);
+        if( _i == -1 || _j == -1){
+            gotcha = -1;
+            break;
+        }
+        throw_S( &Q_set[0][0], &S_set[0][0], _i, _j);
+    }
+    printf("\nQ~\n");puts_Q_S(&Q_set[0][0]);printf("S~\n");
+    puts_Q_S(&S_set[0][0]);printf("\n~~Dijkstra construction finished~~\n");
+    if(gotcha == -1)       printf("gotcha = -1\n");
+    system("Pause");
+    while( S_run(&S_set[0][0]) );
+    return 0;
+}
+//other
 _Vehicle* Adjacency_List(){
     FILE* inf = file();
     int i = 0;
@@ -175,110 +180,20 @@ void show(){
     system("CLS");
     for( int i = 0; i < Y_width; i++){
         for( int j = 0; j < X_width; j++){
-            if(vertex[i][j]->value == '0')
-                printf("X");
-            else if(vertex[i][j]->value == '1')
-                printf("-");
-            else if(vertex[i][j]->value == '2')
-                printf("o");
-            else if(vertex[i][j]->value == '3')
-                printf("$");
-            else if(vertex[i][j]->value == '4')
-                printf("o");
-            else if(vertex[i][j]->value == '5')
-                printf("@");
-            else if(vertex[i][j]->value == '6')
-                printf("@");
-            else if(vertex[i][j]->value == '7')
-                printf(".");
+            switch(vertex[i][j]->value){
+            case '0' :  printf("X");    break;
+            case '1' :  printf("-");    break;
+            case '2' :  printf("o");    break;
+            case '3' :  printf("$");    break;
+            case '4' :  printf("o");    break;
+            case '5' :  printf("@");    break;
+            case '6' :  printf("@");    break;
+            case '7' :  printf(".");    break;
+            }
         }
         printf("\n");
     }
 }
-
-int run(_Vehicle* start){
-    _Set* Q_set[Y_width][X_width];
-    _Set* S_set[Y_width][X_width];
-    build_Q_set(&Q_set[0][0], &S_set[0][0], start);
-    puts_Q_S(&Q_set[0][0]);    printf("\n~~~S~\n");    puts_Q_S(&S_set[0][0]);    system("CLS");
-    int gotcha = 0;
-    while(Q_set_all_NULL( &Q_set[0][0])){
-        int _i = -1, _j = -1;
-        catch_Q( &Q_set[0][0], &_i, &_j);
-        if( _i == -1 || _j == -1){
-            gotcha = -1;
-            break;
-        }
-        throw_S( &Q_set[0][0], &S_set[0][0], _i, _j);
-    }
-    if(gotcha == -1){
-        printf("_i == -1, _j == -1!!\n");
-    }
-    printf("\nQ~\n");puts_Q_S(&Q_set[0][0]);printf("S~\n");puts_Q_S(&S_set[0][0]);printf("\nfin~");
-    while( S_run(&S_set[0][0]) );
-    return 0;
-}
-
-bool forward(int* car_face,int* new_x,int* new_y){
-    int new_x_prime = *new_x;
-    int new_y_prime = *new_y;
-    if( !check_drive(false,*car_face,&new_x_prime,&new_y_prime,0,0) )       return false;
-    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,0,1) )       return false;
-    car_offset(new_x,new_y,*car_face,0);
-    return true;
-}
-bool backward(int* car_face,int* new_x,int* new_y){
-    int new_x_prime = *new_x;
-    int new_y_prime = *new_y;
-    check_drive(true,*car_face,&new_x_prime,&new_y_prime,2,2);
-    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,2,2) )       return false;
-    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,2,1) )       return false;
-    car_offset(new_x,new_y,*car_face,2);
-    return true;
-}
-bool rightshift(int* car_face,int* new_x,int* new_y){
-    int new_x_prime = *new_x;
-    int new_y_prime = *new_y;
-    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,1,1) )       return false;
-    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,1,2) )       return false;
-    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,1,2) )       return false;
-    car_offset(new_x,new_y,*car_face,1);
-    return true;
-}
-bool leftshift(int* car_face,int* new_x,int* new_y){
-    int new_x_prime = *new_x;
-    int new_y_prime = *new_y;
-    if( !check_drive(false,*car_face,&new_x_prime,&new_y_prime,3,0) )       return false;
-    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,3,2) )       return false;
-    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,3,2) )       return false;
-    car_offset(new_x,new_y,*car_face,3);
-    return true;
-}
-bool turnright(int* car_face,int* new_x,int* new_y){
-    int new_x_prime = *new_x;
-    int new_y_prime = *new_y;
-    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,1,1) )       return false;
-    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,1,2) )       return false;
-    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,1,2) )       return false;
-    car_offset(new_x,new_y,*car_face,1);
-    car_offset(new_x,new_y,*car_face,1);
-    *car_face += 1;
-    *car_face %= 4;
-    return true;
-}
-bool turnleft(int* car_face,int* new_x,int* new_y){
-    int new_x_prime = *new_x;
-    int new_y_prime = *new_y;
-    if( !check_drive(false,*car_face,&new_x_prime,&new_y_prime,3,0) )       return false;
-    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,3,2) )       return false;
-    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,3,2) )       return false;
-    car_offset(new_x,new_y,*car_face,3);
-    car_offset(new_x,new_y,*car_face,2);
-    *car_face += 3;
-    *car_face %= 4;
-    return true;
-}
-
 bool check_drive(bool offset_or_not,int car_face,int* new_x,int* new_y,int dir,int ofs){
     int direction = ( car_face + dir ) % 4;
     if( offset_or_not)     car_offset(new_x,new_y,car_face,ofs);
@@ -351,7 +266,80 @@ void update_car(bool curr_last,_Vehicle* car){
     }
     return;
 }
-
+//drive
+bool drive(int t,_Vehicle* curr_car,_Vehicle* new_car){
+    bool (*drive[])(int* car_face,int* new_x,int* new_y) = {
+        forward,        backward,        rightshift,
+        leftshift,        turnright,        turnleft
+    };
+    int new_car_face = curr_car->face;
+    int new_x = curr_car->driver->x;
+    int new_y = curr_car->driver->y;
+    if( !(*drive[t])(&new_car_face,&new_x,&new_y) )       return false;  //if can't drive;
+    new_car->driver = vertex[new_y][new_x];
+    new_car->face = new_car_face;
+    return true;
+}
+bool forward(int* car_face,int* new_x,int* new_y){
+    int new_x_prime = *new_x;
+    int new_y_prime = *new_y;
+    if( !check_drive(false,*car_face,&new_x_prime,&new_y_prime,0,0) )       return false;
+    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,0,1) )       return false;
+    car_offset(new_x,new_y,*car_face,0);
+    return true;
+}
+bool backward(int* car_face,int* new_x,int* new_y){
+    int new_x_prime = *new_x;
+    int new_y_prime = *new_y;
+    check_drive(true,*car_face,&new_x_prime,&new_y_prime,2,2);
+    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,2,2) )       return false;
+    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,2,1) )       return false;
+    car_offset(new_x,new_y,*car_face,2);
+    return true;
+}
+bool rightshift(int* car_face,int* new_x,int* new_y){
+    int new_x_prime = *new_x;
+    int new_y_prime = *new_y;
+    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,1,1) )       return false;
+    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,1,2) )       return false;
+    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,1,2) )       return false;
+    car_offset(new_x,new_y,*car_face,1);
+    return true;
+}
+bool leftshift(int* car_face,int* new_x,int* new_y){
+    int new_x_prime = *new_x;
+    int new_y_prime = *new_y;
+    if( !check_drive(false,*car_face,&new_x_prime,&new_y_prime,3,0) )       return false;
+    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,3,2) )       return false;
+    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,3,2) )       return false;
+    car_offset(new_x,new_y,*car_face,3);
+    return true;
+}
+bool turnright(int* car_face,int* new_x,int* new_y){
+    int new_x_prime = *new_x;
+    int new_y_prime = *new_y;
+    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,1,1) )       return false;
+    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,1,2) )       return false;
+    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,1,2) )       return false;
+    car_offset(new_x,new_y,*car_face,1);
+    car_offset(new_x,new_y,*car_face,1);
+    *car_face += 1;
+    *car_face %= 4;
+    return true;
+}
+bool turnleft(int* car_face,int* new_x,int* new_y){
+    int new_x_prime = *new_x;
+    int new_y_prime = *new_y;
+    if( !check_drive(false,*car_face,&new_x_prime,&new_y_prime,3,0) )       return false;
+    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,3,2) )       return false;
+    if( !check_drive(true,*car_face,&new_x_prime,&new_y_prime,3,2) )       return false;
+    car_offset(new_x,new_y,*car_face,3);
+    car_offset(new_x,new_y,*car_face,2);
+    *car_face += 3;
+    *car_face %= 4;
+    return true;
+}
+//Q S sets
 void puts_Q_S(_Set** Q_set){
     _Set* tmp;
     for(int i = 0; i < Y_width; i ++){
@@ -450,13 +438,9 @@ void Q_update(_Set** Q_set, _Set* curr){
     _Vehicle* car = curr->step_log->car;
     int f, i_prime, j_prime;
     _Vertex* tmp = NULL;
-
     for( int k = 0; k < 6; ++ k){
         _Vehicle* new_car = (_Vehicle*)malloc(sizeof(_Vehicle));
-        if( !drive(k, car, new_car) ){
-            free(new_car);
-            continue;
-        }
+        if( !drive(k, car, new_car) ){      free(new_car);      continue; }
         f = (k<2)?1:(k<4)?2:5;      f += curr->fuel_consumption;
         tmp = new_car->driver;
         i_prime = tmp->y;        j_prime = tmp->x;
@@ -467,9 +451,8 @@ void Q_update(_Set** Q_set, _Set* curr){
             }else{car_offset(&j_prime,&i_prime,new_car->face,0);}
             if(!(*(Q_set + X_width*i_prime + j_prime )))        continue;
             if( (*(Q_set + X_width*i_prime + j_prime ))->fuel_consumption != -1
-               && f >= (*(Q_set + X_width*i_prime + j_prime ))->fuel_consumption)
-                continue;
-            //if short than ago;
+               && f >= (*(Q_set + X_width*i_prime + j_prime ))->fuel_consumption)    continue;
+            //~~if short than ago;
             _StepLog* new_SL = (_StepLog*)malloc(sizeof(_StepLog));
             new_SL->car = new_car;
             new_SL->last = curr->step_log;
@@ -480,7 +463,7 @@ void Q_update(_Set** Q_set, _Set* curr){
     }
     return;
 }
-
+//S run
 bool S_run(_Set** S_set){
     bool c = true;
     int o;
@@ -513,3 +496,4 @@ void recursionUpdate_S(_Set** S_set, _StepLog* curr){
         (*(S_set + X_width*i_prime + j_prime ))->visited = true;
     }
 }
+
