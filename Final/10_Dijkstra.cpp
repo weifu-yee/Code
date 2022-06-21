@@ -7,7 +7,7 @@
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~FILE~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 FILE* file(){
-    FILE* inf = fopen("D:/Code/Final/INPUT file/input2.txt","r");
+    FILE* inf = fopen("D:/Code/Final/INPUT file/input5.txt","r");
     if( !inf)       printf("File not found!\n"),  exit(1);
     return inf;
 }
@@ -17,6 +17,7 @@ typedef struct _Vertex{
     char value;
     int x;
     int y;
+    bool visited;
     struct _Connect* connect;
 }_Vertex;
 typedef struct _Connect{
@@ -31,17 +32,11 @@ typedef struct _Vehicle{
 typedef struct _Set{
     int fuel_consumption;
     struct _StepLog* step_log;
-    bool visited;
 }_Set;
 typedef struct _StepLog{
     _Vehicle* car;
     struct _StepLog* last;
 }_StepLog;
-/*typedef struct _SuccessStepLog{
-    int fuel_consumption;
-    int num_of_step;
-    struct _StepLog* head;
-}_SuccessStepLog;*/
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~Global Variables~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 _Vertex* vertex[50][50];    //the map's vertex which input;
@@ -104,11 +99,13 @@ int run(_Vehicle* start){
         }
         throw_S( &Q_set[0][0][0], &S_set[0][0][0], _i, _j, _face);
     }
+    //output_file(&S_set[0][0][0]);
+    //
     printf("\nQ~\n");print_Q_S(&Q_set[0][0][0]);printf("S~\n");
     print_Q_S(&S_set[0][0][0]);printf("\n~~Dijkstra construction finished~~\n");
     if(gotcha == -1)       printf("gotcha = -1\n");
     system("Pause");
-    while( S_run(&S_set[0][0][0]) );
+    while( S_run(&S_set[0][0][0]) )     system("Pause");
     return 0;
 }
 //other
@@ -126,6 +123,7 @@ _Vehicle* Adjacency_List(){
             vertex[i][j] = new_vertex;
             new_vertex->x = j;
             new_vertex->y = i;
+            new_vertex->visited = false;
             fscanf(inf,"%c",&(new_vertex->value));
             if( new_vertex->value == '3')        mission_spot_or_not = true;
             if( two_or_three && new_vertex->value == '2'){
@@ -225,7 +223,7 @@ void recursion_show(_Set** S_set, _StepLog* curr){
     update_car(true,curr->car);
     recursionUpdate_S(S_set, curr);
     show();
-    Sleep(10);
+    Sleep(100);
     update_car(false,curr->car);
     return;
 }
@@ -374,32 +372,29 @@ void build_Q_set(_Set** Q_set, _Set** S_set, _Vehicle* start){
                 new_Set->fuel_consumption = -1;  //initialization
                 //new_Set->num_of_step = 0;
                 new_Set->step_log = NULL;
-                new_Set->visited = false;
                 (*(Q_set + i*X_width*4 + j*4 + face )) = new_Set;
             }
         }
     }
-    {    //update start
-        
-        _StepLog* start_step_log = (_StepLog*)malloc(sizeof(_StepLog));
-        start_step_log->car = start;
-        start_step_log->last = NULL;
-        int i = start->driver->y;       int j = start->driver->x;       int face = start->face;
+    //update start
+    _StepLog* start_step_log = (_StepLog*)malloc(sizeof(_StepLog));
+    start_step_log->car = start;
+    start_step_log->last = NULL;
+    int i = start->driver->y;       int j = start->driver->x;       int face = start->face;
+    (*(Q_set + i*X_width*4 + j*4 + face ))->fuel_consumption = 0;
+    (*(Q_set + i*X_width*4 + j*4 + face ))->step_log = start_step_log;
+    for(int k = 0; k < 2; k ++){
+        car_offset(&j,&i,start->face,2);
         (*(Q_set + i*X_width*4 + j*4 + face ))->fuel_consumption = 0;
         (*(Q_set + i*X_width*4 + j*4 + face ))->step_log = start_step_log;
-        for(int k = 0; k < 2; k ++){
-            car_offset(&j,&i,start->face,2);
-            (*(Q_set + i*X_width*4 + j*4 + face ))->fuel_consumption = 0;
-            (*(Q_set + i*X_width*4 + j*4 + face ))->step_log = start_step_log;
-        }
-        car_offset(&j,&i,start->face,1);
+    }
+    car_offset(&j,&i,start->face,1);
+    (*(Q_set + i*X_width*4 + j*4 + face ))->fuel_consumption = 0;
+    (*(Q_set + i*X_width*4 + j*4 + face ))->step_log = start_step_log;
+    for(int k = 0; k < 2; k ++){
+        car_offset(&j,&i,start->face,0);
         (*(Q_set + i*X_width*4 + j*4 + face ))->fuel_consumption = 0;
         (*(Q_set + i*X_width*4 + j*4 + face ))->step_log = start_step_log;
-        for(int k = 0; k < 2; k ++){
-            car_offset(&j,&i,start->face,0);
-            (*(Q_set + i*X_width*4 + j*4 + face ))->fuel_consumption = 0;
-            (*(Q_set + i*X_width*4 + j*4 + face ))->step_log = start_step_log;
-        }
     }
     return;
 }
@@ -484,7 +479,7 @@ bool S_run(_Set** S_set){
         for(int j = 0; j < X_width; ++j){
             for(int face = 0; face < 4; ++face){
                 if( !(*(S_set + i*X_width*4 + j*4 + face)))       continue;
-                if( (*(S_set + i*X_width*4 + j*4 + face ))->visited )       continue;
+                if( vertex[i][j]->visited )       continue;
                 if(!c && o >= (*(S_set + i*X_width*4 + j*4 + face ))->fuel_consumption)        continue;
                 if(c)   c = false;
                 tmp = (*(S_set + i*X_width*4 + j*4 + face));
@@ -494,8 +489,6 @@ bool S_run(_Set** S_set){
     }
     if( !tmp){
         printf("\ntmp = NULL!!\n");
-        print_Q_S(S_set);
-        system("Pause");
         return false;
     }
     recursion_show(S_set, tmp->step_log);
@@ -510,7 +503,21 @@ void recursionUpdate_S(_Set** S_set, _StepLog* curr){
         }else if( l == 3){car_offset(&j_prime,&i_prime,curr->car->face,1);
         }else{car_offset(&j_prime,&i_prime,curr->car->face,0);}
         if(!(*(S_set + i_prime*X_width*4 + j_prime*4 + face_prime)))        continue;
-        (*(S_set + i_prime*X_width*4 + j_prime*4 + face_prime ))->visited = true;
+        vertex[i_prime][j_prime]->visited = true;
     }
 }
-
+//OUTPUT file
+// void output_file(_Set** S_set){
+//     FILE* ouf = fopen("D:/Code/Final/OUTPUT file/out10.txt","w");
+//     for(int i = 0; i < Y_width; ++i){
+//         for(int j = 0; j < X_width; ++j){
+//             for(int face = 0; face < 4; ++face){
+//                 fprintf("%d ",(*(S_set + i*X_width*4 + j*4 + face ))->fuel_consumption);
+//                 fprintf("%d ",(*(S_set + i*X_width*4 + j*4 + face ))->);
+//                 fprintf("%d ",(*(S_set + i*X_width*4 + j*4 + face ))->step_log);
+//             }
+//         }
+//     }
+//     fclose(ouf);
+//     return;
+// }
