@@ -45,6 +45,9 @@ bool mission_spot_or_not = false;
 int best_step;
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~Function declaration~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
+//run
+int run(_Vehicle* start);       //run from the start;
+//other
 struct _Vehicle* Adjacency_List();      //construct adjacency list
 void make_connect(int i,int j);     //make junction
 void make_connect_loop();     //loop to make junction
@@ -54,26 +57,26 @@ bool check_drive(bool offset_or_not,int car_face,int* new_x,int* new_y,int dir,i
 void car_offset(int* new_x,int* new_y,int car_face,int ofs);
 void recursion_show(_Set** S_set, _StepLog* curr);
 void update_car(bool curr_last,_Vehicle* car);
-
-int run(_Vehicle* start);       //run from the start;
-
+void reset_vertex();
+//drive
 bool forward(int* car_face,int* new_x,int* new_y);
 bool backward(int* car_face,int* new_x,int* new_y);
 bool rightshift(int* car_face,int* new_x,int* new_y);
 bool leftshift(int* car_face,int* new_x,int* new_y);
 bool turnright(int* car_face,int* new_x,int* new_y);
 bool turnleft(int* car_face,int* new_x,int* new_y);
-
+//Q S sets
 void build_Q_set(_Set** Q_set, _Set** S_set, _Vehicle* start);
 bool Q_set_all_NULL(_Set** Q_set);
 void catch_Q( _Set** Q_set, int* _i, int* _j, int* _face);
 void throw_S(_Set** Q_set, _Set** S_set, int _i, int _j, int _face);
 void print_Q_S(_Set** Q_set);
 void Q_update(_Set** Q_set, _Set* curr);
-
+//S run
 bool S_run(_Set** S_set);
 bool mission_S_run(_Set** S_set);
 void recursionUpdate_S(_Set** S_set, _StepLog* curr);
+
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~main~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 int main(){
@@ -104,7 +107,18 @@ int run(_Vehicle* start){
     print_Q_S(&S_set[0][0][0]);printf("\n~~Dijkstra construction finished~~\n");
     if(gotcha == -1)       printf("gotcha = -1\n");
     system("Pause");
-    while( S_run( &S_set[0][0][0] ) );
+    char cmd = '1';
+    do{
+        fflush(stdin);
+        reset_vertex();
+        while( S_run( &S_set[0][0][0] ) ){
+            if(mission_S_run){
+                system("Pause");
+            }
+        }
+        printf("\n\t~~Press any key not 'q' to run again!~~\n\t~~Or press 'q' to exit!~~\n");
+        scanf("%c",&cmd);
+    }while(cmd != 'q');
     return 0;
 }
 //other
@@ -207,7 +221,16 @@ void car_offset(int* new_x,int* new_y,int car_face,int ofs){
 }
 void recursion_show(_Set** S_set, _StepLog* curr){
     if( !curr)      return;
-    if( vertex[curr->car->driver->y][curr->car->driver->x]->value == '7')       return;
+    int j_prime = curr->car->driver->x, i_prime = curr->car->driver->y, face = curr->car->face;
+    int l = 0;
+    for(; l < 6; l ++){       //see 6-vertecies any unvisited?
+        if( l == 0){
+        }else if( l < 3){car_offset(&j_prime,&i_prime,face,2);
+        }else if( l == 3){car_offset(&j_prime,&i_prime,face,1);
+        }else{car_offset(&j_prime,&i_prime,face,0);}
+        if( vertex[i_prime][j_prime]->visited == false)       break;
+    }
+    if(l == 6)     return;
     if( !curr->last){
         recursion_show(S_set, curr->last);       //call self;
         update_car(true,curr->car);
@@ -259,6 +282,16 @@ void update_car(bool curr_last,_Vehicle* car){
         _3 = false;
         if(vertex[i][j]->value == '3')      _3 = true;
         vertex[i][j]->value = (curr_last)?(_3)?'4':'2' : (_4)?'3':'7';
+    }
+    return;
+}
+void reset_vertex(){
+    for(int i = 0; i < Y_width; ++i){
+        for(int j = 0; j < X_width; ++j){
+            vertex[i][j]->visited = false;
+            if(vertex[i][j]->value == '7')
+                vertex[i][j]->value = '1';
+        }
     }
     return;
 }
@@ -492,11 +525,10 @@ bool S_run(_Set** S_set){
             if(ij_first)   ij_first = false;
             tmp = (*(S_set + i*X_width*4 + j*4 + face));
             o = tmp->fuel_consumption;
-            
         }
     }
     if( !tmp){
-        printf("\ntmp = NULL!!\n");
+        //printf("tmp = NULL!!\n");
         return false;
     }
     recursion_show(S_set, tmp->step_log);

@@ -7,7 +7,7 @@
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~FILE~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 FILE* file(){
-    FILE* inf = fopen("D:/Code/Final/INPUT file/input6.txt","r");    
+    FILE* inf = fopen("D:/Code/Final/INPUT file/input8.txt","r");    
     if( !inf)       printf("File not found!\n"),  exit(1);
     return inf;
 }
@@ -86,6 +86,7 @@ bool check_drive(bool offset_or_not,int car_face,int* new_x,int* new_y,int dir,i
 void car_offset(int* new_x,int* new_y,int car_face,int ofs);
 void Verify_drive(int t,int X,int Y,int face);
 void recursion_show(_StepLog* curr);
+void reset_vertex();
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~Function wrappers~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 bool drive(int t,_Vehicle* curr_car,_Vehicle* new_car){
@@ -110,8 +111,18 @@ bool drive(int t,_Vehicle* curr_car,_Vehicle* new_car){
 int main(){
     _Vehicle* start = Adjacency_List();
     make_connect_loop();
-    if( !run(start) )
+    // if( !run(start)){
+    //     printf("\nYes~\n");
+    // }
+    char cmd = '1';
+    do{
+        fflush(stdin);
+        reset_vertex();
+        while( run(start) );
         printf("\nbest_step:%d",best_step);
+        printf("\n\t~~Press any key not 'q' to run again!~~\n\t~~Or press 'q' to exit!~~\n");
+        scanf("%c",&cmd);
+    }while(cmd != 'q');
     return 0;
 }
 
@@ -246,34 +257,8 @@ int run(_Vehicle* start){
     int _pop = 0;
     while( _pop == 0){
         _pop = pop(&succ);
-        //printf("\n_pop~~%d\n",_pop);
-        // _Queue* curre = top;
-        // int i = 0;
-        // while(curre){
-        //     printf("%d",i);
-        //     i ++;
-        //     curre = curre->queue_next;
-        // }
-        // system("Pause");
     }
     best_step = succ->num_of_step;
-    // _SuccessStepLog* succ2 = (_SuccessStepLog*)malloc(sizeof(_SuccessStepLog));
-    // float i_max = pow(5,5*best_step) - pow(5,best_step);
-    // printf("i_max = %f",i_max);
-    // printf("~stop~");
-    // system("Pause");
-    // for(float i = 0; i < i_max; i ++){
-    //     if( !pop(&succ2) )      continue;
-    //     if( succ2->fuel_consumption < succ->fuel_consumption){
-    //         succ = succ2;
-    //         printf("\nfff~~~");
-    //         system("Pause");
-    //     }else{
-    //         printf("\nnnn~~~");
-    //         system("Pause");
-    //     }
-    // }
-
     if(_pop == -1){
         printf("\nthe stack is empty~~");
         return -1;
@@ -281,7 +266,7 @@ int run(_Vehicle* start){
     if( _pop == 1){
         recursion_show(succ->head);
         printf("\nfuel_consumption:%d",succ->fuel_consumption);
-        printf((mission_spot_or_not)?"\nmission~":"\nall~");
+        printf((mission_spot_or_not)?"\n\tmode:mission~":"\n\tmode:all~");
         return 0;
     }
     return 1;
@@ -343,10 +328,10 @@ void push(_Vehicle* car,_StepLog* step_log,int num_of_step,int fuel_consumption,
 }
 int pop(_SuccessStepLog** succ){
     if( !top)      return -1;
-    // {update_car(true,top->car);       //show the process
-    // show();
-    // update_car(false,top->car);
-    // }
+    {update_car(true,top->car);       //show the process
+    show();
+    update_car(false,top->car);
+    }
     
     if( top->unvisited == NULL){
         ( *succ)->fuel_consumption = top->fuel_consumption;
@@ -642,5 +627,14 @@ void recursion_show(_StepLog* curr){
     show();
     Sleep(300);
     update_car(false,curr->car);
+    return;
+}
+void reset_vertex(){
+    for(int i = 0; i < Y_width; ++i){
+        for(int j = 0; j < X_width; ++j){
+            if(vertex[i][j]->value == '7')
+                vertex[i][j]->value = '1';
+        }
+    }
     return;
 }
