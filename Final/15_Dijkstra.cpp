@@ -110,7 +110,7 @@ int run(_Vehicle* start){
     char cmd = '1';
     do{
         fflush(stdin);
-        reset_vertex();
+        //reset_vertex();
         while( S_run( &S_set[0][0][0] ) ){
             if(mission_S_run){
                 system("Pause");
@@ -469,7 +469,7 @@ void throw_S(_Set** Q_set, _Set** S_set, int _i, int _j, int _face){
     Q_update( Q_set, curr);
     *(S_set + _i*X_width*4 + _j*4 + _face) = curr ;
     *(Q_set + _i*X_width*4 + _j*4 + _face) = NULL;
-    printf("\nQ~\n");    print_Q_S(Q_set);    printf("S~\n");    print_Q_S(S_set);    system("CLS");
+    //printf("\nQ~\n");    print_Q_S(Q_set);    printf("S~\n");    print_Q_S(S_set);    system("CLS");
     return;
 }
 void Q_update(_Set** Q_set, _Set* curr){
@@ -527,48 +527,49 @@ bool S_run(_Set** S_set){
             o = tmp->fuel_consumption;
         }
     }
-    if( !tmp){
-        //printf("tmp = NULL!!\n");
-        return false;
-    }
-    recursion_show(S_set, tmp->step_log);
-    printf("\nfuel consumption = %d\n",tmp->fuel_consumption);
-    return true;
-}
-bool mission_S_run(_Set** S_set){
-    bool ij_first = true;
-    int o, _o;
-    _Set* tmp = NULL;
-    for(int i = 0; i < Y_width; ++i){
-        for(int j = 0; j < X_width; ++j){
-            if( vertex[i][j]->value != '3')      continue;
-            if( vertex[i][j]->visited )       continue;
-            int face = 0;
-            bool face_first = true;
-            for(int k = 0; k < 4; ++k){     //每個點內看最少油耗的方向
-                if( !(*(S_set + i*X_width*4 + j*4 + k)))       continue;
-                if(!face_first && _o <= (*(S_set + i*X_width*4 + j*4 + k ))->fuel_consumption)        continue;
-                if(face_first)   face_first = false;
-                face = k;
-                _o = (*(S_set + i*X_width*4 + j*4 + face))->fuel_consumption;
-            }
-            if( !(*(S_set + i*X_width*4 + j*4 + face)))       continue;
-            if(!ij_first && o >= (*(S_set + i*X_width*4 + j*4 + face ))->fuel_consumption)        continue;
-            if(ij_first)   ij_first = false;
-            tmp = (*(S_set + i*X_width*4 + j*4 + face));
-            o = tmp->fuel_consumption;
-        }
-    }
     // if( !tmp){
-    //     printf("\ntmp = NULL!!\n");
+    //     //printf("tmp = NULL!!\n");
     //     return false;
     // }
     recursion_show(S_set, tmp->step_log);
     printf("\nfuel consumption = %d\n",tmp->fuel_consumption);
-    system("Pause");
     run(tmp->step_log->car);
     return true;
 }
+// bool mission_S_run(_Set** S_set){
+//     bool ij_first = true;
+//     int o, _o;
+//     _Set* tmp = NULL;
+//     for(int i = 0; i < Y_width; ++i){
+//         for(int j = 0; j < X_width; ++j){
+//             if( vertex[i][j]->value != '3')      continue;
+//             if( vertex[i][j]->visited )       continue;
+//             int face = 0;
+//             bool face_first = true;
+//             for(int k = 0; k < 4; ++k){     //每個點內看最少油耗的方向
+//                 if( !(*(S_set + i*X_width*4 + j*4 + k)))       continue;
+//                 if(!face_first && _o <= (*(S_set + i*X_width*4 + j*4 + k ))->fuel_consumption)        continue;
+//                 if(face_first)   face_first = false;
+//                 face = k;
+//                 _o = (*(S_set + i*X_width*4 + j*4 + face))->fuel_consumption;
+//             }
+//             if( !(*(S_set + i*X_width*4 + j*4 + face)))       continue;
+//             if(!ij_first && o >= (*(S_set + i*X_width*4 + j*4 + face ))->fuel_consumption)        continue;
+//             if(ij_first)   ij_first = false;
+//             tmp = (*(S_set + i*X_width*4 + j*4 + face));
+//             o = tmp->fuel_consumption;
+//         }
+//     }
+//     // if( !tmp){
+//     //     printf("\ntmp = NULL!!\n");
+//     //     return false;
+//     // }
+//     recursion_show(S_set, tmp->step_log);
+//     printf("\nfuel consumption = %d\n",tmp->fuel_consumption);
+//     system("Pause");
+//     run(tmp->step_log->car);
+//     return true;
+// }
 void recursionUpdate_S(_Set** S_set, _StepLog* curr){
     int i_prime = curr->car->driver->y;        int j_prime = curr->car->driver->x;
     int face_prime = curr->car->face;
