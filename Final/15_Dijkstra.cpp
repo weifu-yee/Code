@@ -7,7 +7,7 @@
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~FILE~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 FILE* file(){
-    FILE* inf = fopen("D:/Code/Final/INPUT file/input9.txt","r");
+    FILE* inf = fopen("D:/Code/Final/INPUT file/input7.txt","r");
     if( !inf)       printf("File not found!\n"),  exit(1);
     return inf;
 }
@@ -39,10 +39,10 @@ typedef struct _StepLog{
 }_StepLog;
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~Global Variables~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
-_Vertex* vertex[50][50];    //the map's vertex which input;
+_Vertex* vertex[100][100];    //the map's vertex which input;
 int X_width, Y_width;       //X,Y width
 bool mission_spot_or_not = false;
-int best_step;
+int fuel_consumption;
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~Function declaration~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 //run
@@ -80,6 +80,7 @@ void recursionUpdate_S(_Set** S_set, _StepLog* curr);
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~main~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 int main(){
+    fuel_consumption = 0;
     _Vehicle* start = Adjacency_List();
     make_connect_loop();
     run(start);
@@ -92,7 +93,7 @@ int run(_Vehicle* start){
     _Set* Q_set[Y_width][X_width][4];
     _Set* S_set[Y_width][X_width][4];
     build_Q_set(&Q_set[0][0][0], &S_set[0][0][0], start);
-    print_Q_S(&Q_set[0][0][0]);    printf("\n~~~S~\n");    print_Q_S(&S_set[0][0][0]);    system("CLS");
+    //print_Q_S(&Q_set[0][0][0]);    printf("\n~~~S~\n");    print_Q_S(&S_set[0][0][0]);    system("CLS");
     int gotcha = 0;
     while(Q_set_all_NULL( &Q_set[0][0][0])){
         int _i = -1, _j = -1, _face = -1;
@@ -103,10 +104,10 @@ int run(_Vehicle* start){
         }
         throw_S( &Q_set[0][0][0], &S_set[0][0][0], _i, _j, _face);
     }
-    printf("\nQ~\n");print_Q_S(&Q_set[0][0][0]);printf("S~\n");
-    print_Q_S(&S_set[0][0][0]);printf("\n~~Dijkstra construction finished~~\n");
+    //printf("\nQ~\n");print_Q_S(&Q_set[0][0][0]);printf("S~\n");
+    //print_Q_S(&S_set[0][0][0]);printf("\n~~Dijkstra construction finished~~\n");
     if(gotcha == -1)       printf("gotcha = -1\n");
-    system("Pause");
+    //system("Pause");
     char cmd = '1';
     do{
         fflush(stdin);
@@ -119,6 +120,7 @@ int run(_Vehicle* start){
         printf("\n\t~~Press any key not 'q' to run again!~~\n\t~~Or press 'q' to exit!~~\n");
         scanf("%c",&cmd);
     }while(cmd != 'q');
+    printf("~~%d",fuel_consumption);
     return 0;
 }
 //other
@@ -238,7 +240,7 @@ void recursion_show(_Set** S_set, _StepLog* curr){
         update_car(false,curr->car);
         recursionUpdate_S(S_set, curr);
         printf("Start!~~\n");
-        system("Pause");
+        //system("Pause");
         return;
     }
     recursion_show(S_set, curr->last);       //call self;
@@ -521,7 +523,7 @@ bool S_run(_Set** S_set){
                 _o = (*(S_set + i*X_width*4 + j*4 + face))->fuel_consumption;
             }
             if( !(*(S_set + i*X_width*4 + j*4 + face)))       continue;
-            if(!ij_first && o >= (*(S_set + i*X_width*4 + j*4 + face ))->fuel_consumption)        continue;
+            if(!ij_first && o <= (*(S_set + i*X_width*4 + j*4 + face ))->fuel_consumption)        continue;
             if(ij_first)   ij_first = false;
             tmp = (*(S_set + i*X_width*4 + j*4 + face));
             o = tmp->fuel_consumption;
@@ -532,7 +534,8 @@ bool S_run(_Set** S_set){
     //     return false;
     // }
     recursion_show(S_set, tmp->step_log);
-    printf("\nfuel consumption = %d\n",tmp->fuel_consumption);
+    //printf("\nfuel consumption = %d\n",tmp->fuel_consumption);
+    fuel_consumption += tmp->fuel_consumption;
     run(tmp->step_log->car);
     return true;
 }
