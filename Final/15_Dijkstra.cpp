@@ -7,7 +7,7 @@
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~FILE~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 FILE* file(){
-    FILE* inf = fopen("D:/Code/Final/INPUT file/input2.txt","r");
+    FILE* inf = fopen("D:/Code/Final/INPUT file/input9.txt","r");
     if( !inf)       printf("File not found!\n"),  exit(1);
     return inf;
 }
@@ -469,7 +469,7 @@ void throw_S(_Set** Q_set, _Set** S_set, int _i, int _j, int _face){
     Q_update( Q_set, curr);
     *(S_set + _i*X_width*4 + _j*4 + _face) = curr ;
     *(Q_set + _i*X_width*4 + _j*4 + _face) = NULL;
-    //printf("\nQ~\n");    print_Q_S(Q_set);    printf("S~\n");    print_Q_S(S_set);    system("CLS");
+    printf("\nQ~\n");    print_Q_S(Q_set);    printf("S~\n");    print_Q_S(S_set);    system("CLS");
     return;
 }
 void Q_update(_Set** Q_set, _Set* curr){
@@ -557,15 +557,16 @@ bool mission_S_run(_Set** S_set){
             if(ij_first)   ij_first = false;
             tmp = (*(S_set + i*X_width*4 + j*4 + face));
             o = tmp->fuel_consumption;
-            
         }
     }
-    if( !tmp){
-        printf("\ntmp = NULL!!\n");
-        return false;
-    }
+    // if( !tmp){
+    //     printf("\ntmp = NULL!!\n");
+    //     return false;
+    // }
     recursion_show(S_set, tmp->step_log);
     printf("\nfuel consumption = %d\n",tmp->fuel_consumption);
+    system("Pause");
+    run(tmp->step_log->car);
     return true;
 }
 void recursionUpdate_S(_Set** S_set, _StepLog* curr){
