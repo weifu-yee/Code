@@ -7,7 +7,7 @@
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~FILE~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 FILE* file(){
-    FILE* inf = fopen("D:/Code/Final/INPUT file/input7.txt","r");
+    FILE* inf = fopen("D:/Code/Final/INPUT file/input2.txt","r");
     if( !inf)       printf("File not found!\n"),  exit(1);
     return inf;
 }
@@ -246,7 +246,7 @@ void recursion_show(_Set** S_set, _StepLog* curr){
     update_car(true,curr->car);
     recursionUpdate_S(S_set, curr);
     show();
-    //Sleep(30);
+    Sleep(100);
     update_car(false,curr->car);
     return;
 }
