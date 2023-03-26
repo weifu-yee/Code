@@ -16,13 +16,11 @@
       "request": "launch",
       "args": [],
       "stopAtEntry": false,
-      "cwd": "d:/Code/VJ",
-      "environment": [],
-      "program": "d:/Code/VJ/build/Debug/outDebug",
-      "internalConsoleOptions": "openOnSessionStart",
+      "externalConsole": true,
+      "cwd": "d:/Code",
+      "program": "d:/Code/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
-      "console": "integratedTerminal",
       "setupCommands": [
         {
           "description": "Enable pretty-printing for gdb",
