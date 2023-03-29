@@ -105,7 +105,9 @@ int run(_Vehicle* start){
     }
     //printf("\nQ~\n");print_Q_S(&Q_set[0][0][0]);printf("S~\n");
     //print_Q_S(&S_set[0][0][0]);printf("\n~~Dijkstra construction finished~~\n");
-    if(gotcha == -1)       printf("gotcha = -1\n");
+
+    // if(gotcha == -1)       printf("gotcha = -1\n");
+
     //system("Pause");
     char cmd = '1';
     do{
@@ -246,7 +248,7 @@ void recursion_show(_Set** S_set, _StepLog* curr){
     update_car(true,curr->car);
     recursionUpdate_S(S_set, curr);
     show();
-    Sleep(100);
+    Sleep(3);
     update_car(false,curr->car);
     return;
 }
