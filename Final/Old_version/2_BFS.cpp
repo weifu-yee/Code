@@ -7,7 +7,8 @@
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~FILE~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 FILE* file(){
-    FILE* inf = fopen("D:/Code/Final/input2.txt","r");
+    FILE* inf = fopen("D:/Code/Final/INPUT file/input1.txt","r");
+    if( !inf)       printf("File not found!\n"),  exit(1);
     return inf;
 }
 

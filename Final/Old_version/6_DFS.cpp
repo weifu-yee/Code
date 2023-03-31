@@ -7,7 +7,7 @@
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~FILE~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 FILE* file(){
-    FILE* inf = fopen("D:/Code/Final/INPUT file/input6.txt","r");    
+    FILE* inf = fopen("D:/Code/Final/INPUT file/input8.txt","r");    
     if( !inf)       printf("File not found!\n"),  exit(1);
     return inf;
 }
@@ -28,14 +28,14 @@ typedef struct _Vehicle{
     _Vertex* driver;        //the driver's vertex;
     int face;       //determine the direction;
 }_Vehicle;
-typedef struct _Queue{
-    struct _Queue* queue_next;
+typedef struct _Stack{
     _Vehicle* car;
     int fuel_consumption;
     int num_of_step;
     struct _StepLog* step_log;
     struct _Unvisited* unvisited;
-}_Queue;
+    struct _Stack* stack_next;
+}_Stack;
 typedef struct _StepLog{
     _Vehicle* car;
     struct _StepLog* last;
@@ -54,28 +54,29 @@ typedef struct _SuccessStepLog{
 _Vertex* vertex[50][50];    //the map's vertex which input;
 int X_width, Y_width;       //X,Y width
 bool mission_spot_or_not = false;
-_Queue* top = NULL;
+_Stack* top = NULL;
 int best_step;
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~Function declaration~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
-_Vehicle* Adjacency_List();      //construct adjacency list
+int run(_Vehicle* start);       //run from the start;
+struct _Vehicle* Adjacency_List();      //construct adjacency list
 void make_connect(int i,int j);     //make junction
 void make_connect_loop();     //loop to make junction
 int axis_addition(int axis, int initial, int face);
 void show();        //print the graph
 void update_car(bool curr_last,_Vehicle* car);
-int run(_Vehicle* start);       //run from the start;
-_Unvisited* build_unvisited();
-_Unvisited* copy_unv(_Unvisited* curr);
+struct _Unvisited* build_unvisited();
+struct _Unvisited* copy_unv(_Unvisited* curr);
 void recursion_copy(_Unvisited* curr,_Unvisited** new_head_of_unv);
 bool finish_or_not();       //check if we get it;
-void push(_Vehicle* car,_StepLog* step_log,int num_of_step,
-             int fuel_consumption,_Unvisited* unvisited);
+void push(_Vehicle* car,_StepLog* step_log,int num_of_step,int fuel_consumption,_Unvisited* unvisited);
 int pop(_SuccessStepLog** succ);
 int triversal(_StepLog* step_log);
 void delete_unv(_Vehicle* car,_Unvisited** ptr_unv,int t);
-_Unvisited* triversal_delete(_Vertex* vertex,_Unvisited* unv);
+struct _Unvisited* triversal_delete(_Vertex* vertex,_Unvisited* unv);
 void recursion_free(_Unvisited* To_free);
+
+bool drive(int t,_Vehicle* curr_car,_Vehicle* new_car);
 bool forward(int* car_face,int* new_x,int* new_y);
 bool backward(int* car_face,int* new_x,int* new_y);
 bool rightshift(int* car_face,int* new_x,int* new_y);
@@ -83,39 +84,52 @@ bool leftshift(int* car_face,int* new_x,int* new_y);
 bool turnright(int* car_face,int* new_x,int* new_y);
 bool turnleft(int* car_face,int* new_x,int* new_y);
 bool check_drive(bool offset_or_not,int car_face,int* new_x,int* new_y,int dir,int ofs);
+
 void car_offset(int* new_x,int* new_y,int car_face,int ofs);
 void Verify_drive(int t,int X,int Y,int face);
 void recursion_show(_StepLog* curr);
-
-//~ ~ ~ ~ ~ ~ ~ ~ ~ ~Function wrappers~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
-bool drive(int t,_Vehicle* curr_car,_Vehicle* new_car){
-    bool (*drive[])(int* car_face,int* new_x,int* new_y) = {
-        forward,
-        backward,
-        rightshift,
-        leftshift,
-        turnright,
-        turnleft
-    };
-    int new_car_face = curr_car->face;
-    int new_x = curr_car->driver->x;
-    int new_y = curr_car->driver->y;
-    if( !(*drive[t])(&new_car_face,&new_x,&new_y) )       return false;  //if can't drive;
-    new_car->driver = vertex[new_y][new_x];
-    new_car->face = new_car_face;
-    return true;
-}
+void reset_vertex();
 
 //~ ~ ~ ~ ~ ~ ~ ~ ~ ~main~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
 int main(){
     _Vehicle* start = Adjacency_List();
     make_connect_loop();
-    if( !run(start) )
-        printf("\nbest_step:%d",best_step);
+    if( !run(start)){
+        printf("\nSuccess~\n");
+    }
     return 0;
 }
 
-_Vehicle* Adjacency_List(){
+//~ ~ ~ ~ ~ ~ ~ ~ ~ ~functions~ ~ ~ ~ ~ ~ ~ ~ ~ ~//
+int run(_Vehicle* start){
+    _Unvisited* start_unvisited = build_unvisited();        //build unv
+    _StepLog* start_step_log = (_StepLog*)malloc(sizeof(_StepLog));     //build step log
+    start_step_log->car = start;
+    start_step_log->last = NULL;
+    push(start,start_step_log,0,0,start_unvisited);     //the first push
+    _SuccessStepLog* succ = (_SuccessStepLog*)malloc(sizeof(_SuccessStepLog));      //a new succ
+    int _pop = 0;
+    while( _pop == 0)        _pop = pop(&succ);      //pop over and over again
+    best_step = succ->num_of_step;
+    if(_pop == -1){        printf("\nthe stack is empty~~");        return -1;   }  //if fault
+    if( _pop == 1){         //successfull
+        char cmd = '1';
+        do{         //show until press 'q'
+            fflush(stdin);
+            reset_vertex();
+            recursion_show(succ->head);
+            printf("\nfuel_consumption:%d",succ->fuel_consumption);
+            printf((mission_spot_or_not)?"\n\tmode:mission~":"\n\tmode:all~");
+            printf("\nbest_step:%d",best_step);
+            printf("\n\t~~Press any key not 'q' to run again!~~\n\t~~Or press 'q' to exit!~~\n");
+            scanf("%c",&cmd);
+        }while(cmd != 'q');
+        return 0;
+    }
+    return 1;
+}
+//other
+struct _Vehicle* Adjacency_List(){
     FILE* inf = file();
     int i = 0;
     _Vehicle* start = (_Vehicle*) malloc( sizeof( _Vehicle));
@@ -236,65 +250,15 @@ void update_car(bool curr_last,_Vehicle* car){
     }
     return;
 }
-int run(_Vehicle* start){
-    _Unvisited* start_unvisited = build_unvisited();
-    _StepLog* start_step_log = (_StepLog*)malloc(sizeof(_StepLog));
-    start_step_log->car = start;
-    start_step_log->last = NULL;
-    push(start,start_step_log,0,0,start_unvisited);
-    _SuccessStepLog* succ = (_SuccessStepLog*)malloc(sizeof(_SuccessStepLog));
-    int _pop = 0;
-    while( _pop == 0){
-        _pop = pop(&succ);
-        //printf("\n_pop~~%d\n",_pop);
-        // _Queue* curre = top;
-        // int i = 0;
-        // while(curre){
-        //     printf("%d",i);
-        //     i ++;
-        //     curre = curre->queue_next;
-        // }
-        // system("Pause");
-    }
-    best_step = succ->num_of_step;
-    // _SuccessStepLog* succ2 = (_SuccessStepLog*)malloc(sizeof(_SuccessStepLog));
-    // float i_max = pow(5,5*best_step) - pow(5,best_step);
-    // printf("i_max = %f",i_max);
-    // printf("~stop~");
-    // system("Pause");
-    // for(float i = 0; i < i_max; i ++){
-    //     if( !pop(&succ2) )      continue;
-    //     if( succ2->fuel_consumption < succ->fuel_consumption){
-    //         succ = succ2;
-    //         printf("\nfff~~~");
-    //         system("Pause");
-    //     }else{
-    //         printf("\nnnn~~~");
-    //         system("Pause");
-    //     }
-    // }
-
-    if(_pop == -1){
-        printf("\nthe stack is empty~~");
-        return -1;
-    }
-    if( _pop == 1){
-        recursion_show(succ->head);
-        printf("\nfuel_consumption:%d",succ->fuel_consumption);
-        printf((mission_spot_or_not)?"\nmission~":"\nall~");
-        return 0;
-    }
-    return 1;
-}
-_Unvisited* build_unvisited(){
+struct _Unvisited* build_unvisited(){
     _Unvisited* head_of_unvis = NULL;
     for( int i = 0; i < Y_width; i ++){
         for( int j = 0; j < X_width; j ++){
             if( vertex[i][j]->value == '0')
                 continue;
             if( vertex[i][j]->value == '2')
-                    continue;
-            if( mission_spot_or_not){
+                continue;
+            if( mission_spot_or_not){       //mission mode
                 if( vertex[i][j]->value == '1')
                     continue;
             }
@@ -306,7 +270,7 @@ _Unvisited* build_unvisited(){
     }
     return head_of_unvis;
 }
-_Unvisited* copy_unv(_Unvisited* curr){
+struct _Unvisited* copy_unv(_Unvisited* curr){
     _Unvisited* new_head_of_unv = NULL;
     recursion_copy(curr,&new_head_of_unv);
     return new_head_of_unv;
@@ -330,43 +294,27 @@ bool finish_or_not(){
     return true;
 }
 void push(_Vehicle* car,_StepLog* step_log,int num_of_step,int fuel_consumption,_Unvisited* unvisited){
-    _Queue* new_queue = (_Queue*)malloc(sizeof(_Queue));
-    new_queue->car = car;
-    new_queue->step_log = step_log;
-    new_queue->fuel_consumption = fuel_consumption;
-    new_queue->num_of_step = num_of_step;
-    new_queue->unvisited = unvisited;
-    new_queue->queue_next = top;
-    if( top != NULL)  new_queue->queue_next = top;
-    top = new_queue;
+    _Stack* new_Stack = (_Stack*)malloc(sizeof(_Stack));
+    new_Stack->car = car;
+    new_Stack->step_log = step_log;
+    new_Stack->fuel_consumption = fuel_consumption;
+    new_Stack->num_of_step = num_of_step;
+    new_Stack->unvisited = unvisited;
+    new_Stack->stack_next = top;
+    if( top != NULL)  new_Stack->stack_next = top;
+    top = new_Stack;
     return;
 }
 int pop(_SuccessStepLog** succ){
     if( !top)      return -1;
-    // {update_car(true,top->car);       //show the process
-    // show();
-    // update_car(false,top->car);
-    // }
-    
-    if( top->unvisited == NULL){
+    update_car(true,top->car);    show();    update_car(false,top->car);
+    if( top->unvisited == NULL){        //if findout
         ( *succ)->fuel_consumption = top->fuel_consumption;
         ( *succ)->num_of_step = top->num_of_step;
         ( *succ)->head = top->step_log;
         return 1;
     }
     bool another_t = false;
-    
-    // printf("pop(%d,%d)\tface:%d\n",top->car->driver->x
-    //     ,top->car->driver->y,top->car->face);
-
-    // _StepLog* cucucu = top->step_log;
-    // while( cucucu){
-    //     printf("\tLog:(%d,%d)\tface:%d\n",cucucu->car->driver->x,
-    //         cucucu->car->driver->y,cucucu->car->face);
-    //     cucucu = cucucu->last;
-    // }
-    // system("Pause");
-
     int temp_t = -1;     //to save the t that same with top->car;
     _Vehicle* curr_car = top->car;
     int new_num_of_step = top->num_of_step + 1;
@@ -374,13 +322,11 @@ int pop(_SuccessStepLog** succ){
     int new_fuel_consumption;
     _Unvisited* unvisited = top->unvisited;
     _StepLog* step_log = top->step_log;
-    _Queue* To_free = top;
-    top = top->queue_next;
-    //free( To_free);
-    if( triversal(step_log) > 7){      //if the vertex had been visited over 4 times,
-        // printf("dfdf\n");
-        // system("Pause");                //just pop and that go;
-        recursion_free(unvisited);      
+    _Stack* To_free = top;
+    top = top->stack_next;
+    free( To_free);
+    if( triversal(step_log) > 7){      //if the vertex had been visited over 7 times,    
+        recursion_free(unvisited);      //just pop and that go;
         return 0;
     }
     for(int t = 5; t >= 0 ; t --){
@@ -394,12 +340,10 @@ int pop(_SuccessStepLog** succ){
             new_step_log->last = step_log;
         _Unvisited* new_unvisited = copy_unv(unvisited); //establish a new and same unv;
         delete_unv(new_car,&new_unvisited,t);
-        {if( t >= 4)      //classify fuel_cons
-            new_fuel_consumption = fuel_consumption + 5;
-        else if( t >= 2)
-            new_fuel_consumption = fuel_consumption + 2;
-        else
-            new_fuel_consumption = fuel_consumption + 1;}
+        //fuel consumption
+        if( t >= 4)         new_fuel_consumption = fuel_consumption + 5;
+        else if( t >= 2)          new_fuel_consumption = fuel_consumption + 2;
+        else        new_fuel_consumption = fuel_consumption + 1;
         if( step_log->last){
             if( new_car->driver->x == step_log->last->car->driver->x)
             if( new_car->driver->y == step_log->last->car->driver->y)
@@ -409,14 +353,11 @@ int pop(_SuccessStepLog** succ){
                 continue;
             }     
         }   
-        push( new_car, new_step_log, new_num_of_step,
-                 new_fuel_consumption, new_unvisited);
-        // printf("push(%d,%d)\tface:%d\n",top->car->driver->x
-        //     ,top->car->driver->y,top->car->face);
-        //system("Pause");
+        push( new_car, new_step_log, new_num_of_step, new_fuel_consumption, new_unvisited);
         another_t = true;
-        }
-    if(temp_t >= 0 && !another_t){        //when a die path only can back;
+    }
+    //when a die path only can back;
+    if(temp_t >= 0 && !another_t){        
             _Vehicle* new_car = (_Vehicle*)malloc(sizeof(_Vehicle));
             drive(temp_t,curr_car,new_car);
             _StepLog* new_step_log = (_StepLog*)malloc(sizeof(_StepLog));
@@ -427,13 +368,8 @@ int pop(_SuccessStepLog** succ){
             if( temp_t >= 4)     new_fuel_consumption = fuel_consumption + 5;
             else if( temp_t >= 2)     new_fuel_consumption = fuel_consumption + 2;
             else      new_fuel_consumption = fuel_consumption + 1;
-            push( new_car, new_step_log, new_num_of_step,
-                 new_fuel_consumption, new_unvisited);
-            // printf("push(%d,%d)\tface:%d\n",top->car->driver->x
-            //     ,top->car->driver->y,top->car->face);
-            //system("Pause");
+            push( new_car, new_step_log, new_num_of_step, new_fuel_consumption, new_unvisited);
         }
-    //system("Pause");
     recursion_free(unvisited);
     return 0;
 }
@@ -526,7 +462,7 @@ void delete_unv(_Vehicle* car,_Unvisited** ptr_unv,int t){
     *ptr_unv = unv;
     return;
 }
-_Unvisited* triversal_delete(_Vertex* vertex,_Unvisited* unv){
+struct _Unvisited* triversal_delete(_Vertex* vertex,_Unvisited* unv){
     if( !unv)     return NULL;
     _Unvisited* temp = triversal_delete(vertex,unv->next);
     if( vertex == unv->vertex)      return temp;
@@ -539,7 +475,24 @@ void recursion_free(_Unvisited* To_free){
     free(To_free);
     return;
 }
-
+//drive
+bool drive(int t,_Vehicle* curr_car,_Vehicle* new_car){
+    bool (*drive[])(int* car_face,int* new_x,int* new_y) = {
+        forward,
+        backward,
+        rightshift,
+        leftshift,
+        turnright,
+        turnleft
+    };
+    int new_car_face = curr_car->face;
+    int new_x = curr_car->driver->x;
+    int new_y = curr_car->driver->y;
+    if( !(*drive[t])(&new_car_face,&new_x,&new_y) )       return false;  //if can't drive;
+    new_car->driver = vertex[new_y][new_x];
+    new_car->face = new_car_face;
+    return true;
+}
 bool forward(int* car_face,int* new_x,int* new_y){
     int new_x_prime = *new_x;
     int new_y_prime = *new_y;
@@ -599,7 +552,7 @@ bool turnleft(int* car_face,int* new_x,int* new_y){
     *car_face %= 4;
     return true;
 }
-
+//other
 bool check_drive(bool offset_or_not,int car_face,int* new_x,int* new_y,int dir,int ofs){
     int direction = ( car_face + dir ) % 4;
     if( offset_or_not)     car_offset(new_x,new_y,car_face,ofs);
@@ -642,5 +595,14 @@ void recursion_show(_StepLog* curr){
     show();
     Sleep(300);
     update_car(false,curr->car);
+    return;
+}
+void reset_vertex(){
+    for(int i = 0; i < Y_width; ++i){
+        for(int j = 0; j < X_width; ++j){
+            if(vertex[i][j]->value == '7')
+                vertex[i][j]->value = '1';
+        }
+    }
     return;
 }
