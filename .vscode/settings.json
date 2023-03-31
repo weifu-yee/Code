@@ -4,7 +4,8 @@
     "stdio.h": "c",
     "stdlib.h": "c",
     "compare": "cpp",
-    "*.tcc": "cpp"
+    "*.tcc": "cpp",
+    "iostream": "cpp"
   },
   "C_Cpp_Runner.cCompilerPath": "D:/msys2/mingw64/bin/gcc.exe",
   "C_Cpp_Runner.cppCompilerPath": "D:/msys2/mingw64/bin/g++.exe",
@@ -35,5 +36,9 @@
   ],
   "C_Cpp_Runner.debuggerPath": "gdb",
   "C_Cpp_Runner.useMsvc": false,
-  "C_Cpp_Runner.useAddressSanitizer": false
+  "C_Cpp_Runner.useAddressSanitizer": false,
+  "editor.definitionLinkOpensInPeek": false,
+  "editor.gotoLocation.alternativeDefinitionCommand": "editor.action.goToReferences",
+  "editor.gotoLocation.multipleDefinitions": "peek",
+  "editor.gotoLocation.multipleTypeDefinitions": "peek"
 }
