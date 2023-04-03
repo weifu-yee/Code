@@ -5,6 +5,5 @@ int main(){
     if(openfile() != NULL){
         printf("The file is opened!\n");
     }
-    _Vertex* p = NULL;
     return 0;
 }
