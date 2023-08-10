@@ -1,7 +1,7 @@
 #include<bits/stdc++.h>
 using namespace std;
 
-void solve(){
+int main(){
     int N, M;   cin >> N >> M;
     vector<vector<int>> adj(N+1);
     while(M--){
@@ -43,8 +43,4 @@ void solve(){
     };
 
     topoSort();
-}
-
-int main(){
-    solve();
 }
