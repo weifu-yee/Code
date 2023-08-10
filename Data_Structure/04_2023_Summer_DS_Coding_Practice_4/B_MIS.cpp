@@ -1,16 +1,17 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-int MIS(int v, vector<vector<int>>& adjlist, vector<int>& vis, vector<int>& m_size){
+int MIS(int v, vector<vector<int>>& adjlist, vector<int>& vis, vector<int>& m_size, vector<int>& parent){
     if(vis[v])  return 0;
-
     vis[v] = true;
+    parent.push_back(v);
     int skip = 0,keep = 1;
     for(auto i:adjlist[v])
-        skip += MIS(i, adjlist, vis, m_size);
+        skip += MIS(i, adjlist, vis, m_size, parent);
     for(auto i:adjlist[v])
         for(auto j:adjlist[i]){
-            if(j == v)  continue;
+            for(auto k:parent)
+                if(k == j)  keep -= m_size[j];
             keep += m_size[j];
         }
     m_size[v] = max(skip, keep);
@@ -28,7 +29,8 @@ int main(){
         adjlist[a].push_back(b);
         adjlist[b].push_back(a);
     }
-
-    cout << MIS(1, adjlist, vis, m_size) << endl;
+    
+    vector<int> parent;
+    cout << MIS(1, adjlist, vis, m_size, parent) << endl;
     return 0;
 }
