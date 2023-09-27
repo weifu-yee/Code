@@ -1,0 +1,5 @@
+# depslib dependency file v1.0
+1654010455 source:d:\codeblock\neowang\main.c
+	<stdio.h>
+	<stdlib.h>
+

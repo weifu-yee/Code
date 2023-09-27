@@ -1,0 +1,8 @@
+# depslib dependency file v1.0
+1653479696 source:d:\codeblock\877\main.c
+	<stdio.h>
+	<stdlib.h>
+	<stdbool.h>
+	<conio.h>
+	<windows.h>
+
